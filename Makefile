@@ -1,3 +1,6 @@
+load_rates:
+	node scripts/load-historical.js
+
 pg_up: pg_down
 	cd pg && docker build -f Dockerfile . -t rates:latest
 	docker run --name=dsr_pg\
