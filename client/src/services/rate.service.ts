@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export interface Rate {
-  id: number,
+  id?: number,
   protocol: string,
   rate: number,
   ts: Date

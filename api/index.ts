@@ -38,9 +38,16 @@ app.get('/', (req, res) => res.send('Hello there!'));
 app.get('/rates/current', async (req, res) => {
   try {
     const currentBigNumberRate = await contract.supplyRatePerBlock();
-    const currentRate = +ethers.BigNumber.from(currentBigNumberRate).toString();
-    res.status(200).json(Utils.calSupplyAPY(currentRate));
+    const currentBlockNumber = await provider.getBlockNumber();
+    const currentBlock = await provider.getBlock(currentBlockNumber);
+    const currentRate = {
+      protocol: 'compound', // TODO needs to be dynamic
+      rate: +ethers.BigNumber.from(currentBigNumberRate).toString(),
+      timestamp: currentBlock.timestamp * 1000
+    };
+    res.status(200).json(currentRate);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 })
@@ -48,8 +55,17 @@ app.get('/rates/current', async (req, res) => {
 app.get('/rates/historical', async (req, res) => {
   try {
     const queryResult = await client.query("SELECT * FROM rates ORDER BY ts DESC LIMIT 128");
-    res.status(200).json(queryResult.rows.map(row => Utils.calSupplyAPY(+row.rate)));
+    const rates = queryResult.rows.map(row => {
+      return {
+        id: row.id,
+        protocol: 'compound',
+        rate: Utils.calSupplyAPY(+row.rate),
+        timestamp: row.ts
+      }
+    })
+    res.status(200).json(rates);
   } catch(error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
