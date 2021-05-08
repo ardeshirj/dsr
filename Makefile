@@ -1,3 +1,9 @@
+client_start:
+	cd client && npm install && npm run start
+
+api_start:
+	cd api && npm install && npm run start
+
 load_rates:
 	node scripts/load-historical.js
 
