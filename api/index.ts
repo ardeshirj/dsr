@@ -1,6 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import Cors from 'cors';
 import { ethers } from 'ethers';
 import { Client } from 'pg';
 
@@ -29,6 +30,8 @@ const port = 8000;
 const server = app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
+
+app.use(Cors());
 
 app.get('/', (req, res) => res.send('Hello there!'));
 
