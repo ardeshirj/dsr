@@ -39,18 +39,18 @@ app.get('/rates/current', async (req, res) => {
   try {
     const currentBigNumberRate = await contract.supplyRatePerBlock();
     const currentRate = +ethers.BigNumber.from(currentBigNumberRate).toString();
-    res.status(200).json({data: Utils.calSupplyAPY(currentRate) });
+    res.status(200).json(Utils.calSupplyAPY(currentRate));
   } catch (error) {
-    res.status(500).json({error: error.message });
+    res.status(500).json({ error: error.message });
   }
 })
 
 app.get('/rates/historical', async (req, res) => {
   try {
     const queryResult = await client.query("SELECT * FROM rates ORDER BY ts DESC LIMIT 128");
-    res.status(200).json({ data: queryResult.rows.map(row => Utils.calSupplyAPY(+row.rate)) });
+    res.status(200).json(queryResult.rows.map(row => Utils.calSupplyAPY(+row.rate)));
   } catch(error) {
-    res.status(500).json({error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
