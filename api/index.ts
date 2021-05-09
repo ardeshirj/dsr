@@ -44,7 +44,7 @@ app.get('/rates/current', async (req, res) => {
     const currentRate = {
       protocol: 'compound', // TODO needs to be dynamic
       rate: Utils.calSupplyAPY(bigNumberRate),
-      timestamp: new Date(currentBlock.timestamp * 1000)
+      timestamp: currentBlock.timestamp * 1000
     };
     res.status(200).json(currentRate);
   } catch (error) {
@@ -59,9 +59,9 @@ app.get('/rates/historical', async (req, res) => {
     const rates = queryResult.rows.map(row => {
       return {
         id: row.id,
-        protocol: 'compound',
+        protocol: row.protocol,
         rate: Utils.calSupplyAPY(+row.rate),
-        timestamp: new Date(row.ts)
+        timestamp: row.ts
       }
     })
     res.status(200).json(rates);
