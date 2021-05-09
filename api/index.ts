@@ -40,10 +40,11 @@ app.get('/rates/current', async (req, res) => {
     const currentBigNumberRate = await contract.supplyRatePerBlock();
     const currentBlockNumber = await provider.getBlockNumber();
     const currentBlock = await provider.getBlock(currentBlockNumber);
+    const bigNumberRate = +ethers.BigNumber.from(currentBigNumberRate).toString()
     const currentRate = {
       protocol: 'compound', // TODO needs to be dynamic
-      rate: +ethers.BigNumber.from(currentBigNumberRate).toString(),
-      timestamp: currentBlock.timestamp * 1000
+      rate: Utils.calSupplyAPY(bigNumberRate),
+      timestamp: new Date(currentBlock.timestamp * 1000)
     };
     res.status(200).json(currentRate);
   } catch (error) {
@@ -60,7 +61,7 @@ app.get('/rates/historical', async (req, res) => {
         id: row.id,
         protocol: 'compound',
         rate: Utils.calSupplyAPY(+row.rate),
-        timestamp: row.ts
+        timestamp: new Date(row.ts)
       }
     })
     res.status(200).json(rates);
