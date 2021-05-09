@@ -35,24 +35,6 @@ app.use(Cors());
 
 app.get('/', (req, res) => res.send('Hello there!'));
 
-app.get('/rates/current', async (req, res) => {
-  try {
-    const currentBigNumberRate = await contract.supplyRatePerBlock();
-    const currentBlockNumber = await provider.getBlockNumber();
-    const currentBlock = await provider.getBlock(currentBlockNumber);
-    const bigNumberRate = +ethers.BigNumber.from(currentBigNumberRate).toString()
-    const currentRate = {
-      protocol: 'compound', // TODO needs to be dynamic
-      rate: Utils.calSupplyAPY(bigNumberRate),
-      timestamp: currentBlock.timestamp * 1000
-    };
-    res.status(200).json(currentRate);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
-  }
-})
-
 app.get('/rates/historical', async (req, res) => {
   try {
     const queryResult = await client.query("SELECT * FROM rates ORDER BY ts DESC LIMIT 128");
@@ -60,7 +42,7 @@ app.get('/rates/historical', async (req, res) => {
       return {
         id: row.id,
         protocol: row.protocol,
-        rate: Utils.calSupplyAPY(+row.rate),
+        apy: Utils.calSupplyAPY(+row.rate),
         timestamp: row.ts
       }
     })
