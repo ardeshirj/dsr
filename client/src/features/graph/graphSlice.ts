@@ -4,9 +4,9 @@ import { getCurrentRate, getHistoricalRate, Rate } from '../../services/rate.ser
 
 interface GraphState {
   isLoading: boolean;
-  currentRate: Rate | null,
+  currentRate: Rate,
   historicalRates: Rate[];
-  error: string | null;
+  error: string;
 }
 
 export const initialState: GraphState = {
