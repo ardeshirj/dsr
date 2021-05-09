@@ -28,9 +28,6 @@ function App() {
     dispatch(fetchHistoricalRate());
   }, [dispatch]);
 
-
-  console.log(currentRate);
-
   return (
     <div className="App">
       <header className="App-header">

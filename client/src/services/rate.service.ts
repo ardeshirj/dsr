@@ -4,7 +4,7 @@ export interface Rate {
   id?: number,
   protocol: string,
   rate: number,
-  ts: Date
+  timestamp: Date
 }
 
 export async function getCurrentRate(): Promise<Rate> {
