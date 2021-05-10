@@ -13,19 +13,19 @@ const provider = new ethers.providers.JsonRpcProvider('https://eth.coincircle.co
 
 // compound
 const compoundAddress = "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643";
-const compoundABIPath = path.join(__dirname, '..', 'contracts', 'compound.abi');
+const compoundABIPath = path.join(__dirname, '..', 'abi', 'compound.abi');
 const compoundABIJson = JSON.parse(fs.readFileSync(compoundABIPath, 'utf8'));
 const compoundContract = new ethers.Contract(compoundAddress, compoundABIJson, provider);
 
 // Maker DAO - DSR
 const dsrAddress = "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7";
-const dsrABIPath = path.join(__dirname, '..', 'contracts', 'dsr.abi');
+const dsrABIPath = path.join(__dirname, '..', 'abi', 'dsr.abi');
 const dsrABIJson = JSON.parse(fs.readFileSync(dsrABIPath, 'utf8'));
 const dsrContract = new ethers.Contract(dsrAddress, dsrABIJson, provider);
 
 // bZx
 const bzxAddress = "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0";
-const bzxABIPath = path.join(__dirname, '..', 'contracts', 'bzx.abi');
+const bzxABIPath = path.join(__dirname, '..', 'abi', 'bzx.abi');
 const bzxABIJson = JSON.parse(fs.readFileSync(bzxABIPath, 'utf8')).abi;
 const bzxContract = new ethers.Contract(bzxAddress, bzxABIJson, provider);
 
