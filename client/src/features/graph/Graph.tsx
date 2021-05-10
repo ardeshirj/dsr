@@ -4,6 +4,7 @@ import { Rate } from "../../services/rate.service";
 interface Props {
   compoundRates: Rate[];
   dsrRates: Rate[];
+  bzxRates: Rate[];
 }
 
 const graphOptions = {
@@ -20,8 +21,8 @@ const graphOptions = {
   },
   scales: {
     y: {
-      min: 0,
-      max: 3,
+      min: -5,
+      max: 20,
       ticks: {
         stepSize: 0.25
       }
@@ -32,8 +33,8 @@ const graphOptions = {
 export default function Graph({
   compoundRates,
   dsrRates,
+  bzxRates
 }: Props) {
-  console.log(dsrRates);
   const linesData = {
     labels: rateTimestampLabels(compoundRates),
     datasets: [
@@ -43,7 +44,7 @@ export default function Graph({
         fill: false,
         // TODO: Replace rgb with COLORS.GREEN, etc...
         borderColor: 'rgb(0,128,0)',
-        backgroundColor: 'rgb(0,128,0, 0.5)',
+        backgroundColor: 'rgb(0,128,0,0.5)',
         tension: 0.1
       },
       {
@@ -52,13 +53,20 @@ export default function Graph({
         fill: false,
         // TODO: Replace rgb with COLORS.GREEN, etc...
         borderColor: 'rgb(230,230,0)',
-        backgroundColor: 'rgb(230,230,0.10)',
+        backgroundColor: 'rgb(230,230,0.5)',
+        tension: 0.1
+      },
+      {
+        label: 'bZx Rate',
+        data: bzxRates.map(rate => rate.apy),
+        fill: false,
+        // TODO: Replace rgb with COLORS.GREEN, etc...
+        borderColor: 'rgb(0,0,255)',
+        backgroundColor: 'rgb(0,0,255,0.5)',
         tension: 0.1
       },
     ],
   };
-
-  console.log(linesData);
 
   return (
     <div>

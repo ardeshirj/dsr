@@ -6,6 +6,7 @@ interface GraphState {
   isLoading: boolean;
   compoundRates: Rate[],
   dsrRates: Rate[],
+  bzxRates: Rate[],
   error: string;
 }
 
@@ -13,6 +14,7 @@ export const initialState: GraphState = {
   isLoading: false,
   compoundRates: [],
   dsrRates: [],
+  bzxRates: [],
   error: null
 };
 
@@ -24,6 +26,10 @@ export const graphSlice = createSlice({
       state.isLoading = true;
       state.compoundRates = [];
       state.error = null;
+    },
+    fetchRateFailed: (state, action: PayloadAction<string>) => {
+      state.isLoading = false;
+      state.error = action.payload
     },
     // Compound
     fetchedCompoundCurrentRate: (state, action: PayloadAction<Rate>) => {
@@ -47,10 +53,17 @@ export const graphSlice = createSlice({
       state.dsrRates = action.payload;
       state.error = null;
     },
-    fetchRateFailed: (state, action: PayloadAction<string>) => {
-      state.isLoading = false;
-      state.error = action.payload
+    // BZX
+    fetchedBZXCurrentRate: (state, action: PayloadAction<Rate>) => {
+      state.isLoading = isLoading(state);
+      state.bzxRates = state.bzxRates.concat(action.payload);
+      state.error = null;
     },
+    fetchedBZXHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
+      state.isLoading = isLoading(state);
+      state.bzxRates = action.payload;
+      state.error = null;
+    }
   },
 });
 
@@ -58,16 +71,23 @@ const isLoading = (state: GraphState) => {
   return state.compoundRates &&
     state.compoundRates.length == 0 &&
     state.dsrRates &&
-    state.dsrRates.length == 0;
+    state.dsrRates.length == 0 &&
+    state.bzxRates &&
+    state.bzxRates.length == 0
 }
 
 export const {
   fetchRate,
+  fetchRateFailed,
+  // compound
   fetchedCompoundCurrentRate,
   fetchedCompoundHistoricalRate,
+  // DSR
   fetchedDSRCurrentRate,
   fetchedDSRHistoricalRate,
-  fetchRateFailed
+  // BZX
+  fetchedBZXCurrentRate,
+  fetchedBZXHistoricalRate,
 } = graphSlice.actions;
 
 export default graphSlice.reducer;
@@ -103,6 +123,24 @@ export const fetchDSRHistoricalRate = (): AppThunk => async dispatch => {
   try {
     const historicalRates = await getHistoricalRate('dsr');
     dispatch(fetchedDSRHistoricalRate(historicalRates));
+  } catch (error) {
+    dispatch(fetchRateFailed(error.toString()));
+  }
+}
+
+export const fetchBZXCurrentRate = (): AppThunk => async dispatch => {
+  try {
+    const currentRate = await getDSRCurrentRate();
+    dispatch(fetchedBZXCurrentRate(currentRate));
+  } catch (error) {
+    dispatch(fetchRateFailed(error.toString()));
+  }
+}
+
+export const fetchBZXHistoricalRate = (): AppThunk => async dispatch => {
+  try {
+    const historicalRates = await getHistoricalRate('bzx');
+    dispatch(fetchedBZXHistoricalRate(historicalRates));
   } catch (error) {
     dispatch(fetchRateFailed(error.toString()));
   }

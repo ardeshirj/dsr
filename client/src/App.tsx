@@ -5,7 +5,8 @@ import {
   fetchCompoundCurrentRate,
   fetchCompoundHistoricalRate,
   fetchDSRCurrentRate,
-  fetchDSRHistoricalRate
+  fetchDSRHistoricalRate,
+  fetchBZXHistoricalRate,
 } from "./features/graph/graphSlice";
 
 import './App.css';
@@ -20,6 +21,7 @@ function App() {
     isLoading,
     compoundRates,
     dsrRates,
+    bzxRates,
   } = useSelector(
     (state: RootState) => state.graph
   );
@@ -32,6 +34,7 @@ function App() {
 
     dispatch(fetchCompoundHistoricalRate());
     dispatch(fetchDSRHistoricalRate());
+    dispatch(fetchBZXHistoricalRate());
 
   }, [dispatch]);
 
@@ -46,7 +49,7 @@ function App() {
       <header className="App-header">
         { isLoading
             ? <div>Loading...</div>
-            : <Graph compoundRates={compoundRates} dsrRates={dsrRates} />
+            : <Graph compoundRates={compoundRates} dsrRates={dsrRates} bzxRates={bzxRates} />
         }
       </header>
     </div>
