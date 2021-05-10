@@ -1,17 +1,6 @@
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
 import Cors from 'cors';
-import { ethers } from 'ethers';
 import { Client } from 'pg';
-
-import Utils from './utils';
-
-const compoundAddress = "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643";
-const abiPath = path.join(__dirname, '..', 'contracts', 'compound.abi');
-const compoundABIJson = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
-const provider = new ethers.providers.JsonRpcProvider('https://eth.coincircle.com');
-const contract = new ethers.Contract(compoundAddress, compoundABIJson, provider);
 
 // TODO use env var instead.
 const client = new Client({
@@ -37,12 +26,18 @@ app.get('/', (req, res) => res.send('Hello there!'));
 
 app.get('/rates/historical', async (req, res) => {
   try {
-    const queryResult = await client.query("SELECT * FROM rates ORDER BY ts DESC LIMIT 128");
+    const query = {
+      text: "SELECT * FROM rates WHERE protocol = $1 ORDER BY ts DESC LIMIT 128",
+      values: [req.query.protocol]
+    }
+
+    const queryResult = await client.query(query);
     const rates = queryResult.rows.map(row => {
+      console.log(row);
       return {
         id: row.id,
         protocol: row.protocol,
-        apy: Utils.calSupplyAPY(+row.rate),
+        apy: +row.rate,
         timestamp: row.ts
       }
     })
