@@ -3,9 +3,7 @@ import { Rate } from "../../services/rate.service";
 
 interface Props {
   isLoading: boolean;
-  error: string | null;
-  currentRate: Rate | null;
-  historicalRates: Rate[];
+  rates: Rate[];
 }
 
 const graphOptions = {
@@ -27,12 +25,10 @@ const graphOptions = {
 
 export default function Graph({
   isLoading,
-  error,
-  currentRate,
-  historicalRates
+  rates,
 }: Props) {
 
-  const rateLabels = historicalRates
+  const rateLabels = rates
     .slice()
     .reverse()
     .map(rate => {
@@ -45,8 +41,9 @@ export default function Graph({
     datasets: [
       {
         label: 'Compound Rate',
-        data:  historicalRates.map(rate => rate.rate),
+        data:  rates.map(rate => rate.apy),
         fill: false,
+        // TODO: Replace rgb with COLORS.GREEN, etc...
         borderColor: 'rgb(0,128,0)',
         backgroundColor: 'rgb(0,128,0, 0.5)',
         tension: 0.1
@@ -55,9 +52,16 @@ export default function Graph({
   };
 
   return (
-    <div>
-      <h1>DIA Rates (30 minutes)</h1>
-      <Line type="line" data={data} options={graphOptions}/>
-    </div>
+    <>
+      {
+        !isLoading ?
+        <div>
+          <h1>DIA Rates (30 minutes)</h1>
+          <h3>Automatically will update on new interest rate</h3>
+          <Line type="line" data={data} options={graphOptions}/>
+        </div> :
+        <div>Loading...</div>
+      }
+    </>
   )
 }

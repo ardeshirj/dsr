@@ -1,18 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppThunk, RootState } from '../../app/store';
+import { AppThunk } from '../../app/store';
 import { getCurrentRate, getHistoricalRate, Rate } from '../../services/rate.service';
 
 interface GraphState {
   isLoading: boolean;
-  currentRate: Rate,
-  historicalRates: Rate[];
+  rates: Rate[],
   error: string;
 }
 
 export const initialState: GraphState = {
   isLoading: false,
-  currentRate: null,
-  historicalRates: [],
+  rates: [],
   error: null
 };
 
@@ -22,18 +20,17 @@ export const graphSlice = createSlice({
   reducers: {
     requestRate: (state) => {
       state.isLoading = true;
-      state.currentRate = null;
-      state.historicalRates = [];
+      state.rates = [];
       state.error = null;
     },
     getCurrentRateSuccess: (state, action: PayloadAction<Rate>) => {
-      state.isLoading = false;
-      state.currentRate = action.payload;
+      state.isLoading = !(state.rates && state.rates.length > 0);
+      state.rates = state.rates.concat(action.payload);
       state.error = null;
     },
     getHistoricalRateSuccess: (state, action: PayloadAction<Rate[]>) => {
-      state.isLoading = false;
-      state.historicalRates = action.payload;
+      state.isLoading = !(state.rates && state.rates.length > 0);
+      state.rates = action.payload;
       state.error = null;
     },
     getRateFailed: (state, action: PayloadAction<string>) => {
@@ -49,9 +46,6 @@ export const {
   getHistoricalRateSuccess,
   getRateFailed
 } = graphSlice.actions;
-
-export const selectCurrentRate = (state: RootState) => state.graph.currentRate;
-export const selectHistoricalRate = (state: RootState) => state.graph.historicalRates;
 
 export default graphSlice.reducer;
 

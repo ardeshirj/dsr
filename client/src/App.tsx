@@ -9,15 +9,14 @@ import {
 import './App.css';
 import { RootState } from './app/store';
 import Graph from './features/graph/Graph';
+import { contract } from "./services/rate.service";
 
 function App() {
   const dispatch = useDispatch();
 
   const {
     isLoading,
-    error,
-    currentRate,
-    historicalRates
+    rates
   } = useSelector(
     (state: RootState) => state.graph
   );
@@ -28,15 +27,16 @@ function App() {
     dispatch(fetchHistoricalRate());
   }, [dispatch]);
 
+  contract.on('AccrueInterest', () => {
+    console.log("AccrueInterest happened!");
+    console.log("Getting new current supply rate...");
+    dispatch(fetchCurrentRate());
+  })
+
   return (
     <div className="App">
       <header className="App-header">
-        <Graph
-          isLoading={isLoading}
-          error={error}
-          currentRate={currentRate}
-          historicalRates={historicalRates}
-        />
+        <Graph isLoading={isLoading} rates={rates}/>
       </header>
     </div>
   );
