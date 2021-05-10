@@ -1,16 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppThunk } from '../../app/store';
-import { getCurrentRate, getHistoricalRate, Rate } from '../../services/rate.service';
+import { getCompoundCurrentRate, getDSRCurrentRate, getHistoricalRate, Rate } from '../../services/rate.service';
 
 interface GraphState {
   isLoading: boolean;
-  rates: Rate[],
+  compoundRates: Rate[],
+  dsrRates: Rate[],
   error: string;
 }
 
 export const initialState: GraphState = {
   isLoading: false,
-  rates: [],
+  compoundRates: [],
+  dsrRates: [],
   error: null
 };
 
@@ -18,51 +20,91 @@ export const graphSlice = createSlice({
   name: 'rates',
   initialState,
   reducers: {
-    requestRate: (state) => {
+    fetchRate: (state) => {
       state.isLoading = true;
-      state.rates = [];
+      state.compoundRates = [];
       state.error = null;
     },
-    getCurrentRateSuccess: (state, action: PayloadAction<Rate>) => {
-      state.isLoading = !(state.rates && state.rates.length > 0);
-      state.rates = state.rates.concat(action.payload);
+    // Compound
+    fetchedCompoundCurrentRate: (state, action: PayloadAction<Rate>) => {
+      state.isLoading = isLoading(state);
+      state.compoundRates = state.compoundRates.concat(action.payload);
       state.error = null;
     },
-    getHistoricalRateSuccess: (state, action: PayloadAction<Rate[]>) => {
-      state.isLoading = !(state.rates && state.rates.length > 0);
-      state.rates = action.payload;
+    fetchedCompoundHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
+      state.isLoading = isLoading(state);
+      state.compoundRates = action.payload;
       state.error = null;
     },
-    getRateFailed: (state, action: PayloadAction<string>) => {
+    // DSR
+    fetchedDSRCurrentRate: (state, action: PayloadAction<Rate>) => {
+      state.isLoading = isLoading(state);
+      state.dsrRates = state.dsrRates.concat(action.payload);
+      state.error = null;
+    },
+    fetchedDSRHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
+      state.isLoading = isLoading(state);
+      state.dsrRates = action.payload;
+      state.error = null;
+    },
+    fetchRateFailed: (state, action: PayloadAction<string>) => {
       state.isLoading = false;
       state.error = action.payload
     },
   },
 });
 
+const isLoading = (state: GraphState) => {
+  return state.compoundRates &&
+    state.compoundRates.length == 0 &&
+    state.dsrRates &&
+    state.dsrRates.length == 0;
+}
+
 export const {
-  requestRate,
-  getCurrentRateSuccess,
-  getHistoricalRateSuccess,
-  getRateFailed
+  fetchRate,
+  fetchedCompoundCurrentRate,
+  fetchedCompoundHistoricalRate,
+  fetchedDSRCurrentRate,
+  fetchedDSRHistoricalRate,
+  fetchRateFailed
 } = graphSlice.actions;
 
 export default graphSlice.reducer;
 
-export const fetchCurrentRate = (): AppThunk => async dispatch => {
+export const fetchCompoundCurrentRate = (): AppThunk => async dispatch => {
   try {
-    const currentRate = await getCurrentRate();
-    dispatch(getCurrentRateSuccess(currentRate));
+    const currentRate = await getCompoundCurrentRate();
+    dispatch(fetchedCompoundCurrentRate(currentRate));
   } catch (error) {
-    dispatch(getRateFailed(error.toString()));
+    dispatch(fetchRateFailed(error.toString()));
   }
 }
 
-export const fetchHistoricalRate = (): AppThunk => async dispatch => {
+export const fetchCompoundHistoricalRate = (): AppThunk => async dispatch => {
   try {
-    const historicalRates = await getHistoricalRate();
-    dispatch(getHistoricalRateSuccess(historicalRates));
+    const historicalRates = await getHistoricalRate('compound');
+    dispatch(fetchedCompoundHistoricalRate(historicalRates));
   } catch (error) {
-    dispatch(getRateFailed(error.toString()));
+    dispatch(fetchRateFailed(error.toString()));
   }
 }
+
+export const fetchDSRCurrentRate = (): AppThunk => async dispatch => {
+  try {
+    const currentRate = await getDSRCurrentRate();
+    dispatch(fetchedDSRCurrentRate(currentRate));
+  } catch (error) {
+    dispatch(fetchRateFailed(error.toString()));
+  }
+}
+
+export const fetchDSRHistoricalRate = (): AppThunk => async dispatch => {
+  try {
+    const historicalRates = await getHistoricalRate('dsr');
+    dispatch(fetchedDSRHistoricalRate(historicalRates));
+  } catch (error) {
+    dispatch(fetchRateFailed(error.toString()));
+  }
+}
+
