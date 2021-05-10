@@ -3,7 +3,7 @@ const path = require('path');
 const ethers = require('ethers');
 const { Client } = require('pg');
 
-const LAST_128_BLOCKS = 115 ;
+const LAST_128_BLOCKS = 100 ;
 
 const ethMantissa = 1e18;
 const blocksPerDay = 4 * 60 * 24;
@@ -19,10 +19,15 @@ const compoundContract = new ethers.Contract(compoundAddress, compoundABIJson, p
 
 // Maker DAO - DSR
 const dsrAddress = "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7";
-const dsrABIPath = path.join(__dirname, '..', 'contracts', 'pot.abi');
+const dsrABIPath = path.join(__dirname, '..', 'contracts', 'dsr.abi');
 const dsrABIJson = JSON.parse(fs.readFileSync(dsrABIPath, 'utf8'));
 const dsrContract = new ethers.Contract(dsrAddress, dsrABIJson, provider);
 
+// bZx
+const bzxAddress = "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0";
+const bzxABIPath = path.join(__dirname, '..', 'contracts', 'bzx.abi');
+const bzxABIJson = JSON.parse(fs.readFileSync(bzxABIPath, 'utf8')).abi;
+const bzxContract = new ethers.Contract(bzxAddress, bzxABIJson, provider);
 
 // TODO use env var instead.
 const client = new Client({
@@ -36,8 +41,9 @@ const client = new Client({
 const main = async function() {
   const currentBlockNumber = await provider.getBlockNumber();
 
-  const compoundRatesPromises = [];
-  const dsrRatesPromises = [];
+  const compoundRatePromises = [];
+  const dsrRatePromises = [];
+  const bzxRatePromises = [];
 
   const previousBlocksPromises = [];
 
@@ -46,44 +52,57 @@ const main = async function() {
 
     const compoundRatePromise = compoundContract.supplyRatePerBlock({ blockTag: blockAgo });
     const dsrRatePromise = dsrContract.dsr({ blockTag: blockAgo });
+    const bzxRatePromise = bzxContract.supplyInterestRate({ blockTag: blockAgo });
 
-    compoundRatesPromises.push(compoundRatePromise);
-    dsrRatesPromises.push(dsrRatePromise)
+    compoundRatePromises.push(compoundRatePromise);
+    dsrRatePromises.push(dsrRatePromise);
+    bzxRatePromises.push(bzxRatePromise);
 
     previousBlocksPromises.push(provider.getBlock(blockAgo));
   }
 
   console.log(`Requesting historical supply rate for Compound`);
-  const compoundBigNumberRates = await Promise.all(compoundRatesPromises);
-  console.log(`Requesting historical supply rate for DSR`);
-  const dsrBigNumberRates = await Promise.all(dsrRatesPromises);
-
+  const compoundBigNumberRates = await Promise.all(compoundRatePromises);
   const compoundRates = compoundBigNumberRates.map(rate => +ethers.BigNumber.from(rate).toString());
   console.log(`Received Compound historical rates`);
 
-  const dsrRates = dsrBigNumberRates.map(rate => +ethers.BigNumber.from(rate).toString());
+  console.log(`Requesting historical supply rate for DSR`);
+  const dsrBigNumberRates = await Promise.all(dsrRatePromises);
+  const dsrRates = dsrBigNumberRates.map(rate => ethers.utils.formatEther(rate));
   console.log(`Received DSR historical rates`);
+
+  console.log(`Requesting historical supply rate for BZX`);
+  const bzxBigNumberRates = await Promise.all(bzxRatePromises);
+  const bzxRates = bzxBigNumberRates.map(rate => ethers.utils.formatEther(rate));
+  console.log(`Received BZX historical rates`);
 
   const previousBlocks = await Promise.all(previousBlocksPromises);
   const blockTimestamps = previousBlocks.map(block => new Date(block.timestamp * 1000));
 
   client.connect();
 
-  const compoundInsertParam = compoundRates.map((rate, index) => {
+  const compoundInsertStatements = compoundRates.map((rate, index) => {
     const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
     const values = ['compound', calSupplyAPY(rate), blockTimestamps[index]];
     return client.query(queryStatement, values);
   });
 
-  const dsrInsertParam = dsrRates.map((rate, index) => {
+  const dsrInsertStatements = dsrRates.map((rate, index) => {
     const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
     const values = ['dsr', calDsrAPY(rate), blockTimestamps[index]];
     return client.query(queryStatement, values);
   });
 
+  const bzxInsertStatements = bzxRates.map((rate, index) => {
+    const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
+    const values = ['bzx', rate, blockTimestamps[index]];
+    return client.query(queryStatement, values);
+  });
+
   console.log("Inserting rates...");
-  await Promise.all(compoundInsertParam);
-  await Promise.all(dsrInsertParam);
+  await Promise.all(compoundInsertStatements);
+  await Promise.all(dsrInsertStatements);
+  await Promise.all(bzxInsertStatements);
   console.log("Successfully inserted rates.");
 
   client.end()
