@@ -3,11 +3,13 @@ const path = require('path');
 const ethers = require('ethers');
 const { Client } = require('pg');
 
-const LAST_128_BLOCKS = 100 ;
+const LAST_128_BLOCKS = 20 ;
 
-const ethMantissa = 1e18;
-const blocksPerDay = 4 * 60 * 24;
-const daysPerYear = 365;
+const Protocols = Object.freeze({
+  "Compound": 1,
+  "DSR": 2,
+  "BZX": 3
+});
 
 const provider = new ethers.providers.JsonRpcProvider('https://eth.coincircle.com');
 
@@ -47,7 +49,7 @@ const main = async function() {
 
   const previousBlocksPromises = [];
 
-  for (let block = 0; block <= LAST_128_BLOCKS; block++) {
+  for (let block = 1; block <= LAST_128_BLOCKS; block++) {
     const blockAgo = currentBlockNumber - block;
 
     const compoundRatePromise = compoundContract.supplyRatePerBlock({ blockTag: blockAgo });
@@ -61,65 +63,84 @@ const main = async function() {
     previousBlocksPromises.push(provider.getBlock(blockAgo));
   }
 
-  console.log(`Requesting historical supply rate for Compound`);
-  const compoundBigNumberRates = await Promise.all(compoundRatePromises);
-  const compoundRates = compoundBigNumberRates.map(rate => +ethers.BigNumber.from(rate).toString());
-  console.log(`Received Compound historical rates`);
+  console.log("Requesting historical supply rate for Compound");
+  const compoundRates = await getProtocolHistoricalRates(compoundRatePromises);
+  console.log("Received Compound historical rates");
 
-  console.log(`Requesting historical supply rate for DSR`);
-  const dsrBigNumberRates = await Promise.all(dsrRatePromises);
-  const dsrRates = dsrBigNumberRates.map(rate => ethers.utils.formatEther(rate));
-  console.log(`Received DSR historical rates`);
+  console.log("Requesting historical supply rate for DSR");
+  const dsrRates = await getProtocolHistoricalRates(dsrRatePromises);
+  console.log("Received DSR historical rates");
 
-  console.log(`Requesting historical supply rate for BZX`);
-  const bzxBigNumberRates = await Promise.all(bzxRatePromises);
-  const bzxRates = bzxBigNumberRates.map(rate => ethers.utils.formatEther(rate));
-  console.log(`Received BZX historical rates`);
+  console.log("Requesting historical supply rate for BZX");
+  const bzxRates = await getProtocolHistoricalRates(bzxRatePromises);
+  console.log("Received BZX historical rates");
 
+  console.log("Requesting previous blocks data")
   const previousBlocks = await Promise.all(previousBlocksPromises);
   const blockTimestamps = previousBlocks.map(block => new Date(block.timestamp * 1000));
+  console.log("Received block data");
 
   client.connect();
 
-  const compoundInsertStatements = compoundRates.map((rate, index) => {
-    const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
-    const values = ['compound', calSupplyAPY(rate), blockTimestamps[index]];
-    return client.query(queryStatement, values);
-  });
-
-  const dsrInsertStatements = dsrRates.map((rate, index) => {
-    const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
-    const values = ['dsr', calDsrAPY(rate), blockTimestamps[index]];
-    return client.query(queryStatement, values);
-  });
-
-  const bzxInsertStatements = bzxRates.map((rate, index) => {
-    const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
-    const values = ['bzx', rate, blockTimestamps[index]];
-    return client.query(queryStatement, values);
-  });
-
   console.log("Inserting rates...");
-  await Promise.all(compoundInsertStatements);
-  await Promise.all(dsrInsertStatements);
-  await Promise.all(bzxInsertStatements);
+  await insertRateToDB(Protocols.Compound, compoundRates, blockTimestamps);
+  await insertRateToDB(Protocols.DSR, dsrRates, blockTimestamps);
+  await insertRateToDB(Protocols.BZX, bzxRates, blockTimestamps)
   console.log("Successfully inserted rates.");
 
   client.end()
 }
 
-const calSupplyAPY = (rate) => {
-  return (((Math.pow((rate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
+const getProtocolHistoricalRates = async (ratePromises) => {
+  const bigNumberRates = await Promise.all(ratePromises);
+  return bigNumberRates.map(rate => +ethers.BigNumber.from(rate).toString());
 }
 
-const calDsrAPY = (rate) => {
-  const dsr = rate / Math.pow(10, 27);
-  const secondInYear = 60 * 60 * 24 * 365;
-  return Math.pow(dsr, secondInYear);
+const insertRateToDB = async (protocol, rowRates, blockTimestamps) => {
+  const insertStatements = rowRates.map((rawRate, index) => {
+    const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
+
+    let values;
+    switch (protocol) {
+      case Protocols.Compound:
+        values = ['compound', calCompoundAPY(rawRate), blockTimestamps[index]];
+        break;
+      case Protocols.DSR:
+        values = ['dsr', calDsrAPY(rawRate), blockTimestamps[index]];
+        break;
+      case Protocols.BZX:
+        values = ['bzx', calBzxAPY(rawRate), blockTimestamps[index]];
+        break;
+      default:
+        throw error(`Unknown protocol: ${protocol}`);
+    }
+
+    return client.query(queryStatement, values);
+  });
+
+  return await Promise.all(insertStatements);
 }
 
+const calCompoundAPY = (rawRate) => {
+  const ethMantissa = 1e18;
+  const blocksPerDay = 4 * 60 * 24;
+  const daysPerYear = 365;
+  return (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
+}
 
-main().catch(error => {
+const calDsrAPY = (rawRate) => {
+  const rate = rawRate / Math.pow(10, 27);
+  const secondsInYear = 60 * 60 * 24 * 365;
+  return Math.pow(rate, secondsInYear);
+}
+
+const calBzxAPY = (rawRate) => {
+  return rawRate / Math.pow(10, 18);
+}
+
+try {
+  main();
+} catch(error) {
   console.log(error);
   client.end()
-});
+}
