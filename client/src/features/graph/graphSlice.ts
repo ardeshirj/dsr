@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppThunk } from '../../app/store';
-import { getCompoundCurrentRate, getDSRCurrentRate, getHistoricalRate, Rate } from '../../services/rate.service';
+import { getHistoricalRate, getCurrentRate, Protocol, Rate } from '../../services/rate.service';
 
 interface GraphState {
   isLoading: boolean;
@@ -92,57 +92,47 @@ export const {
 
 export default graphSlice.reducer;
 
-export const fetchCompoundCurrentRate = (): AppThunk => async dispatch => {
+  export const fetchCurrentRate = (protocol: Protocol): AppThunk => async dispatch => {
   try {
-    const currentRate = await getCompoundCurrentRate();
-    dispatch(fetchedCompoundCurrentRate(currentRate));
+    const currentRate = await getCurrentRate(protocol);
+
+    switch (protocol) {
+      case Protocol.Compound:
+        dispatch(fetchedCompoundCurrentRate(currentRate));
+        break;
+      case Protocol.DSR:
+        dispatch(fetchedDSRCurrentRate(currentRate));
+        break;
+      case Protocol.BZX:
+        dispatch(fetchedBZXCurrentRate(currentRate));
+        break;
+      default:
+        throw Error(`Unknown protocol value: ${protocol}`)
+    }
+
   } catch (error) {
     dispatch(fetchRateFailed(error.toString()));
   }
 }
 
-export const fetchCompoundHistoricalRate = (): AppThunk => async dispatch => {
+export const fetchHistoricalRate = (protocol: Protocol): AppThunk => async dispatch => {
   try {
-    const historicalRates = await getHistoricalRate('compound');
-    dispatch(fetchedCompoundHistoricalRate(historicalRates));
+    const historicalRates = await getHistoricalRate(protocol);
+
+    switch (protocol) {
+      case Protocol.Compound:
+        dispatch(fetchedCompoundHistoricalRate(historicalRates));
+        break;
+      case Protocol.DSR:
+        dispatch(fetchedDSRHistoricalRate(historicalRates));
+        break;
+      case Protocol.BZX:
+        dispatch(fetchedBZXHistoricalRate(historicalRates));
+        break;
+      default:
+        throw Error(`Unknown protocol value: ${protocol}`)
+    }
   } catch (error) {
     dispatch(fetchRateFailed(error.toString()));
   }
 }
-
-export const fetchDSRCurrentRate = (): AppThunk => async dispatch => {
-  try {
-    const currentRate = await getDSRCurrentRate();
-    dispatch(fetchedDSRCurrentRate(currentRate));
-  } catch (error) {
-    dispatch(fetchRateFailed(error.toString()));
-  }
-}
-
-export const fetchDSRHistoricalRate = (): AppThunk => async dispatch => {
-  try {
-    const historicalRates = await getHistoricalRate('dsr');
-    dispatch(fetchedDSRHistoricalRate(historicalRates));
-  } catch (error) {
-    dispatch(fetchRateFailed(error.toString()));
-  }
-}
-
-export const fetchBZXCurrentRate = (): AppThunk => async dispatch => {
-  try {
-    const currentRate = await getDSRCurrentRate();
-    dispatch(fetchedBZXCurrentRate(currentRate));
-  } catch (error) {
-    dispatch(fetchRateFailed(error.toString()));
-  }
-}
-
-export const fetchBZXHistoricalRate = (): AppThunk => async dispatch => {
-  try {
-    const historicalRates = await getHistoricalRate('bzx');
-    dispatch(fetchedBZXHistoricalRate(historicalRates));
-  } catch (error) {
-    dispatch(fetchRateFailed(error.toString()));
-  }
-}
-

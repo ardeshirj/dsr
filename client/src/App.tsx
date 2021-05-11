@@ -2,17 +2,14 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchRate,
-  fetchCompoundCurrentRate,
-  fetchCompoundHistoricalRate,
-  fetchDSRCurrentRate,
-  fetchDSRHistoricalRate,
-  fetchBZXHistoricalRate,
+  fetchCurrentRate,
+  fetchHistoricalRate
 } from "./features/graph/graphSlice";
 
 import './App.css';
 import { RootState } from './app/store';
 import Graph from './features/graph/Graph';
-import { dsrContract, compoundContract } from "./services/rate.service";
+import { dsrContract, compoundContract, Protocol } from "./services/rate.service";
 
 function App() {
   const dispatch = useDispatch();
@@ -32,9 +29,9 @@ function App() {
     // dispatch(fetchDSRCurrentRate());
     // dispatch(fetchCompoundCurrentRate());
 
-    dispatch(fetchCompoundHistoricalRate());
-    dispatch(fetchDSRHistoricalRate());
-    dispatch(fetchBZXHistoricalRate());
+    dispatch(fetchHistoricalRate(Protocol.Compound));
+    dispatch(fetchHistoricalRate(Protocol.DSR));
+    dispatch(fetchHistoricalRate(Protocol.BZX));
 
   }, [dispatch]);
 
