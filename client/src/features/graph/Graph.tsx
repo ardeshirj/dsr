@@ -88,12 +88,15 @@ export default function Graph({
 }
 
 const rateTimestampLabels = (rates: Rate[]) => {
-  console.log(rates);
-  return rates
+  const labelSet = new Set();
+
+  rates
     .slice()
     .reverse()
-    .map(rate => {
+    .forEach(rate => {
       const rateTime = new Date(rate.timestamp);
-      return rateTime.getHours() + ":" + rateTime.getMinutes();
+      labelSet.add(rateTime.getHours() + ":" + rateTime.getMinutes());
     });
+
+    return Array.from(labelSet);
 }
