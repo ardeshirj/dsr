@@ -20,7 +20,17 @@ const graphOptions = {
     },
   },
   scales: {
-    y: {
+    xAxes: {
+      title: {
+        text: "Time",
+        display: true
+      }
+    },
+    yAxes: {
+      title: {
+        text: "Rate % APY",
+        display: true
+      },
       min: -5,
       max: 20,
       ticks: {
