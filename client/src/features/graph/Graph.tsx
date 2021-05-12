@@ -3,8 +3,7 @@ import { Rate } from "../../services/rate.service";
 
 interface Props {
   compoundRates: Rate[];
-  dsrRates: Rate[];
-  bzxRates: Rate[];
+  makeDaoRates: Rate[];
 }
 
 const graphOptions = {
@@ -42,8 +41,7 @@ const graphOptions = {
 
 export default function Graph({
   compoundRates,
-  dsrRates,
-  bzxRates
+  makeDaoRates
 }: Props) {
   const linesData = {
     labels: rateTimestampLabels(compoundRates),
@@ -59,20 +57,11 @@ export default function Graph({
       },
       {
         label: 'DSR Rate',
-        data: dsrRates.map(rate => rate.apy),
+        data: makeDaoRates.map(rate => rate.apy),
         fill: false,
         // TODO: Replace rgb with COLORS.GREEN, etc...
         borderColor: 'rgb(230,230,0)',
         backgroundColor: 'rgb(230,230,0.5)',
-        tension: 0.1
-      },
-      {
-        label: 'bZx Rate',
-        data: bzxRates.map(rate => rate.apy),
-        fill: false,
-        // TODO: Replace rgb with COLORS.GREEN, etc...
-        borderColor: 'rgb(0,0,255)',
-        backgroundColor: 'rgb(0,0,255,0.5)',
         tension: 0.1
       },
     ],

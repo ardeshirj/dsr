@@ -2,14 +2,14 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchRate,
-  fetchCurrentRate,
+  fetchCurrentRates,
   fetchHistoricalRate
 } from "./features/graph/graphSlice";
 
 import './App.css';
 import { RootState } from './app/store';
 import Graph from './features/graph/Graph';
-import { dsrContract, compoundContract, Protocol } from "./services/rate.service";
+import { Protocol } from "./services/rate.service";
 
 function App() {
   const dispatch = useDispatch();
@@ -17,8 +17,7 @@ function App() {
   const {
     isLoading,
     compoundRates,
-    dsrRates,
-    bzxRates,
+    makerDaoRates,
   } = useSelector(
     (state: RootState) => state.graph
   );
@@ -26,12 +25,9 @@ function App() {
   useEffect(() => {
     dispatch(fetchRate());
 
-    // dispatch(fetchDSRCurrentRate());
-    // dispatch(fetchCompoundCurrentRate());
-
-    dispatch(fetchHistoricalRate(Protocol.Compound));
-    dispatch(fetchHistoricalRate(Protocol.DSR));
-    dispatch(fetchHistoricalRate(Protocol.BZX));
+    dispatch(fetchCurrentRates());
+    // dispatch(fetchCurrentRate(Protocol.DSR));
+    // dispatch(fetchCurrentRate(Protocol.BZX));
 
   }, [dispatch]);
 
@@ -46,7 +42,7 @@ function App() {
       <header className="App-header">
         { isLoading
             ? <div>Loading...</div>
-            : <Graph compoundRates={compoundRates} dsrRates={dsrRates} bzxRates={bzxRates} />
+            : <Graph compoundRates={compoundRates} makeDaoRates={makerDaoRates} />
         }
       </header>
     </div>

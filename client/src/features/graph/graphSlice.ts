@@ -1,20 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppThunk } from '../../app/store';
-import { getHistoricalRate, getCurrentRate, Protocol, Rate } from '../../services/rate.service';
+import { getHistoricalRate, getCurrentRates, Protocol, Rate } from '../../services/rate.service';
 
 interface GraphState {
   isLoading: boolean;
   compoundRates: Rate[],
-  dsrRates: Rate[],
-  bzxRates: Rate[],
+  makerDaoRates: Rate[],
   error: string;
 }
 
 export const initialState: GraphState = {
   isLoading: false,
   compoundRates: [],
-  dsrRates: [],
-  bzxRates: [],
+  makerDaoRates: [],
   error: null
 };
 
@@ -42,38 +40,25 @@ export const graphSlice = createSlice({
       state.compoundRates = action.payload;
       state.error = null;
     },
-    // DSR
+    // MakeDao
     fetchedDSRCurrentRate: (state, action: PayloadAction<Rate>) => {
       state.isLoading = isLoading(state);
-      state.dsrRates = state.dsrRates.concat(action.payload);
+      state.makerDaoRates = state.makerDaoRates.concat(action.payload);
       state.error = null;
     },
     fetchedDSRHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
       state.isLoading = isLoading(state);
-      state.dsrRates = action.payload;
+      state.makerDaoRates = action.payload;
       state.error = null;
     },
-    // BZX
-    fetchedBZXCurrentRate: (state, action: PayloadAction<Rate>) => {
-      state.isLoading = isLoading(state);
-      state.bzxRates = state.bzxRates.concat(action.payload);
-      state.error = null;
-    },
-    fetchedBZXHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
-      state.isLoading = isLoading(state);
-      state.bzxRates = action.payload;
-      state.error = null;
-    }
   },
 });
 
 const isLoading = (state: GraphState) => {
   return state.compoundRates &&
-    state.compoundRates.length == 0 &&
-    state.dsrRates &&
-    state.dsrRates.length == 0 &&
-    state.bzxRates &&
-    state.bzxRates.length == 0
+    state.compoundRates.length === 0 &&
+    state.makerDaoRates &&
+    state.makerDaoRates.length === 0;
 }
 
 export const {
@@ -82,34 +67,18 @@ export const {
   // compound
   fetchedCompoundCurrentRate,
   fetchedCompoundHistoricalRate,
-  // DSR
+  // MakeDao
   fetchedDSRCurrentRate,
   fetchedDSRHistoricalRate,
-  // BZX
-  fetchedBZXCurrentRate,
-  fetchedBZXHistoricalRate,
 } = graphSlice.actions;
 
 export default graphSlice.reducer;
 
-  export const fetchCurrentRate = (protocol: Protocol): AppThunk => async dispatch => {
+  export const fetchCurrentRates = (): AppThunk => async dispatch => {
   try {
-    const currentRate = await getCurrentRate(protocol);
-
-    switch (protocol) {
-      case Protocol.Compound:
-        dispatch(fetchedCompoundCurrentRate(currentRate));
-        break;
-      case Protocol.DSR:
-        dispatch(fetchedDSRCurrentRate(currentRate));
-        break;
-      case Protocol.BZX:
-        dispatch(fetchedBZXCurrentRate(currentRate));
-        break;
-      default:
-        throw Error(`Unknown protocol value: ${protocol}`)
-    }
-
+    const currentRate = await getCurrentRates();
+    dispatch(fetchedCompoundCurrentRate(currentRate[0]));
+    dispatch(fetchedDSRCurrentRate(currentRate[1]));
   } catch (error) {
     dispatch(fetchRateFailed(error.toString()));
   }
@@ -122,12 +91,6 @@ export const fetchHistoricalRate = (protocol: Protocol): AppThunk => async dispa
     switch (protocol) {
       case Protocol.Compound:
         dispatch(fetchedCompoundHistoricalRate(historicalRates));
-        break;
-      case Protocol.DSR:
-        dispatch(fetchedDSRHistoricalRate(historicalRates));
-        break;
-      case Protocol.BZX:
-        dispatch(fetchedBZXHistoricalRate(historicalRates));
         break;
       default:
         throw Error(`Unknown protocol value: ${protocol}`)
