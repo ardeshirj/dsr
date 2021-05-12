@@ -89,7 +89,7 @@ const insertRateToDB = async (protocol, rowRates, blockTimestamps) => {
     let values;
     switch (protocol) {
       case Protocols.Compound:
-        values = ['compound', calCompoundAPY(rawRate), blockTimestamps[index]];
+        values = ['Compound', calCompoundAPY(rawRate), blockTimestamps[index]];
         break;
       case Protocols.MakerDAO:
         values = ['MakerDAO', calDsrAPY(rawRate), blockTimestamps[index]];

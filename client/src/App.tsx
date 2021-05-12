@@ -24,11 +24,7 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchRate());
-
-    dispatch(fetchCurrentRates());
-    // dispatch(fetchCurrentRate(Protocol.DSR));
-    // dispatch(fetchCurrentRate(Protocol.BZX));
-
+    dispatch(fetchHistoricalRate());
   }, [dispatch]);
 
   // compoundContract.on('AccrueInterest', () => {

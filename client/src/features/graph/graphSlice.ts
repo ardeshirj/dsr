@@ -40,13 +40,13 @@ export const graphSlice = createSlice({
       state.compoundRates = action.payload;
       state.error = null;
     },
-    // MakeDao
-    fetchedDSRCurrentRate: (state, action: PayloadAction<Rate>) => {
+    // MakerDao
+    fetchedMakerDaoCurrentRate: (state, action: PayloadAction<Rate>) => {
       state.isLoading = isLoading(state);
       state.makerDaoRates = state.makerDaoRates.concat(action.payload);
       state.error = null;
     },
-    fetchedDSRHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
+    fetchedMakerDaoHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
       state.isLoading = isLoading(state);
       state.makerDaoRates = action.payload;
       state.error = null;
@@ -67,9 +67,9 @@ export const {
   // compound
   fetchedCompoundCurrentRate,
   fetchedCompoundHistoricalRate,
-  // MakeDao
-  fetchedDSRCurrentRate,
-  fetchedDSRHistoricalRate,
+  // MakerDao
+  fetchedMakerDaoCurrentRate,
+  fetchedMakerDaoHistoricalRate,
 } = graphSlice.actions;
 
 export default graphSlice.reducer;
@@ -78,23 +78,19 @@ export default graphSlice.reducer;
   try {
     const currentRate = await getCurrentRates();
     dispatch(fetchedCompoundCurrentRate(currentRate[0]));
-    dispatch(fetchedDSRCurrentRate(currentRate[1]));
+    dispatch(fetchedMakerDaoCurrentRate(currentRate[1]));
   } catch (error) {
     dispatch(fetchRateFailed(error.toString()));
   }
 }
 
-export const fetchHistoricalRate = (protocol: Protocol): AppThunk => async dispatch => {
+export const fetchHistoricalRate = (): AppThunk => async dispatch => {
   try {
-    const historicalRates = await getHistoricalRate(protocol);
+    const compoundHistoricalRates = await getHistoricalRate(Protocol.Compound);
+    dispatch(fetchedCompoundHistoricalRate(compoundHistoricalRates));
 
-    switch (protocol) {
-      case Protocol.Compound:
-        dispatch(fetchedCompoundHistoricalRate(historicalRates));
-        break;
-      default:
-        throw Error(`Unknown protocol value: ${protocol}`)
-    }
+    const makerDAOHistoricalRates = await getHistoricalRate(Protocol.MakerDAO);
+    dispatch(fetchedMakerDaoHistoricalRate(makerDAOHistoricalRates));
   } catch (error) {
     dispatch(fetchRateFailed(error.toString()));
   }
