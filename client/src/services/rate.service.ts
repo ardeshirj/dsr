@@ -16,7 +16,7 @@ export enum Protocol {
   MakerDAO,
 };
 
-// ropsten address
+// Ropsten address
 const rateAddress = "0x6178a413c4e4c5724515abf045c17070c87edbaa";
 const compoundAddress = "0xbc689667c13fb2a04f09272753760e38a95b998c";
 const makerDAOAddress = "0x9588a660241aeA569B3965e2f00631f2C5eDaE33";

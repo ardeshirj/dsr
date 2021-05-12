@@ -3,33 +3,27 @@ const path = require('path');
 const ethers = require('ethers');
 const { Client } = require('pg');
 
-const LAST_128_BLOCKS = 20 ;
+const LAST_128_BLOCKS = 125 ;
 
 const Protocols = Object.freeze({
   "Compound": 1,
-  "DSR": 2,
-  "BZX": 3
+  "MakerDAO": 2
 });
 
-const provider = new ethers.providers.JsonRpcProvider('https://eth.coincircle.com');
+const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
+// const provider = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/1f130364fd12487f86318286d1fefc3e');
 
-// compound
-const compoundAddress = "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643";
+// Compound
+const compoundAddress = "0xbc689667c13fb2a04f09272753760e38a95b998c"; // Ropsten address
 const compoundABIPath = path.join(__dirname, 'abi', 'compound.abi');
 const compoundABIJson = JSON.parse(fs.readFileSync(compoundABIPath, 'utf8'));
 const compoundContract = new ethers.Contract(compoundAddress, compoundABIJson, provider);
 
 // Maker DAO - DSR
-const dsrAddress = "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7";
-const dsrABIPath = path.join(__dirname, 'abi', 'dsr.abi');
-const dsrABIJson = JSON.parse(fs.readFileSync(dsrABIPath, 'utf8'));
-const dsrContract = new ethers.Contract(dsrAddress, dsrABIJson, provider);
-
-// bZx
-const bzxAddress = "0x6b093998D36f2C7F0cc359441FBB24CC629D5FF0";
-const bzxABIPath = path.join(__dirname, 'abi', 'bzx.abi');
-const bzxABIJson = JSON.parse(fs.readFileSync(bzxABIPath, 'utf8')).abi;
-const bzxContract = new ethers.Contract(bzxAddress, bzxABIJson, provider);
+const makerDaoAddress = "0x9588a660241aeA569B3965e2f00631f2C5eDaE33"; // Ropsten address
+const makerDaoABIPath = path.join(__dirname, 'abi', 'makerDAO.abi');
+const makerDaoABIJson = JSON.parse(fs.readFileSync(makerDaoABIPath, 'utf8'));
+const makerDaoContract = new ethers.Contract(makerDaoAddress, makerDaoABIJson, provider);
 
 // TODO use env var instead.
 const client = new Client({
@@ -44,21 +38,18 @@ const main = async function() {
   const currentBlockNumber = await provider.getBlockNumber();
 
   const compoundRatePromises = [];
-  const dsrRatePromises = [];
-  const bzxRatePromises = [];
+  const makerDaoRatePromises = [];
 
   const previousBlocksPromises = [];
 
-  for (let block = 1; block <= LAST_128_BLOCKS; block++) {
+  for (let block = 0; block <= LAST_128_BLOCKS; block++) {
     const blockAgo = currentBlockNumber - block;
 
     const compoundRatePromise = compoundContract.supplyRatePerBlock({ blockTag: blockAgo });
-    const dsrRatePromise = dsrContract.dsr({ blockTag: blockAgo });
-    const bzxRatePromise = bzxContract.supplyInterestRate({ blockTag: blockAgo });
+    const makerDaoRatePromise = makerDaoContract.dsr({ blockTag: blockAgo });
 
     compoundRatePromises.push(compoundRatePromise);
-    dsrRatePromises.push(dsrRatePromise);
-    bzxRatePromises.push(bzxRatePromise);
+    makerDaoRatePromises.push(makerDaoRatePromise);
 
     previousBlocksPromises.push(provider.getBlock(blockAgo));
   }
@@ -67,13 +58,9 @@ const main = async function() {
   const compoundRates = await getProtocolHistoricalRates(compoundRatePromises);
   console.log("Received Compound historical rates");
 
-  console.log("Requesting historical supply rate for DSR");
-  const dsrRates = await getProtocolHistoricalRates(dsrRatePromises);
+  console.log("Requesting historical supply rate for MakerDAO");
+  const makerDaoRates = await getProtocolHistoricalRates(makerDaoRatePromises);
   console.log("Received DSR historical rates");
-
-  console.log("Requesting historical supply rate for BZX");
-  const bzxRates = await getProtocolHistoricalRates(bzxRatePromises);
-  console.log("Received BZX historical rates");
 
   console.log("Requesting previous blocks data")
   const previousBlocks = await Promise.all(previousBlocksPromises);
@@ -84,8 +71,7 @@ const main = async function() {
 
   console.log("Inserting rates...");
   await insertRateToDB(Protocols.Compound, compoundRates, blockTimestamps);
-  await insertRateToDB(Protocols.DSR, dsrRates, blockTimestamps);
-  await insertRateToDB(Protocols.BZX, bzxRates, blockTimestamps)
+  await insertRateToDB(Protocols.MakerDAO, makerDaoRates, blockTimestamps);
   console.log("Successfully inserted rates.");
 
   client.end()
@@ -105,14 +91,11 @@ const insertRateToDB = async (protocol, rowRates, blockTimestamps) => {
       case Protocols.Compound:
         values = ['compound', calCompoundAPY(rawRate), blockTimestamps[index]];
         break;
-      case Protocols.DSR:
-        values = ['dsr', calDsrAPY(rawRate), blockTimestamps[index]];
-        break;
-      case Protocols.BZX:
-        values = ['bzx', calBzxAPY(rawRate), blockTimestamps[index]];
+      case Protocols.MakerDAO:
+        values = ['MakerDAO', calDsrAPY(rawRate), blockTimestamps[index]];
         break;
       default:
-        throw error(`Unknown protocol: ${protocol}`);
+        throw Error(`Unknown protocol: ${protocol}`);
     }
 
     return client.query(queryStatement, values);
@@ -132,10 +115,6 @@ const calDsrAPY = (rawRate) => {
   const rate = rawRate / Math.pow(10, 27);
   const secondsInYear = 60 * 60 * 24 * 365;
   return Math.pow(rate, secondsInYear);
-}
-
-const calBzxAPY = (rawRate) => {
-  return rawRate / Math.pow(10, 18);
 }
 
 try {

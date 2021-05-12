@@ -69,7 +69,7 @@ export default function Graph({
 
   return (
     <div>
-      <h1>DIA Rates (Last 30 minutes)</h1>
+      <h1>DAI Rates (Last 30 minutes)</h1>
       <h3>Automatically will update on new interest rate</h3>
       <Line type="line" data={linesData} options={graphOptions}/>
     </div>
