@@ -1,30 +1,24 @@
-pragma solidity ^0.8.4;
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.7.0 <0.9.0;
 
 contract Compound {
   function supplyRatePerBlock() public view returns (uint) {}
 }
 
-contract DSR {
+contract MakeDAO {
   function dsr() public view returns (uint) {}
 }
 
-contract BZX {
-  function supplyInterestRate() public view returns (uint) {}
-}
-
 contract Rate {
-  function compoundSupplyRate(address compoundAddress) public view returns (uint result) {
+  function getRates(
+    address compoundAddress,
+    address makerDaoAddress
+  )  public view returns(uint, uint) {
+
     Compound compound = Compound(compoundAddress);
-    return compound.supplyRatePerBlock();
-  }
+    MakeDAO makerDAO = MakeDAO(makerDaoAddress);
 
-  function dsrSupplyRate(address dsrAddress) public view returns (uint result) {
-    DSR makerDAO = DSR(dsrAddress);
-    return makerDAO.dsr();
-  }
-
-  function bzxSupplyRate(address bzxAddress) public view returns (uint result) {
-    BZX bzx = BZX(bzxAddress);
-    return bzx.supplyInterestRate();
+    return (compound.supplyRatePerBlock(), makerDAO.dsr());
   }
 }
