@@ -9,7 +9,7 @@ import {
 import './App.css';
 import { RootState } from './app/store';
 import Graph from './features/graph/Graph';
-import { Protocol } from "./services/rate.service";
+import { compoundContract } from "./services/rate.service";
 
 function App() {
   const dispatch = useDispatch();
@@ -27,11 +27,11 @@ function App() {
     dispatch(fetchHistoricalRate());
   }, [dispatch]);
 
-  // compoundContract.on('AccrueInterest', () => {
-  //   console.log("AccrueInterest happened!");
-  //   console.log("Getting new current supply rate...");
-  //   dispatch(fetchCurrentRate());
-  // });
+  compoundContract.on('AccrueInterest', () => {
+    console.log("AccrueInterest happened!");
+    console.log("Getting new current supply rate...");
+    dispatch(fetchCurrentRates());
+  });
 
   return (
     <div className="App">

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ethers } from 'ethers';
 import rateABI from './rate.json';
 import compoundABI from './compound.json';
-import makerDaoABI from './makerDAO.json';
+// import makerDaoABI from './makerDAO.json';
 
 export interface Rate {
   id?: number,
@@ -22,11 +22,12 @@ const compoundAddress = "0xbc689667c13fb2a04f09272753760e38a95b998c";
 const makerDAOAddress = "0x9588a660241aeA569B3965e2f00631f2C5eDaE33";
 
 // TODO: Regenerate API key & expose it in env var
-const provider = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/1f130364fd12487f86318286d1fefc3e');
-// const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
+// const provider = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/1f130364fd12487f86318286d1fefc3e');
+const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
 // const provider = new ethers.providers.JsonRpcBatchProvider('http://localhost:8545');
 
-export const rateContract = new ethers.Contract(rateAddress, rateABI, provider);
+const rateContract = new ethers.Contract(rateAddress, rateABI, provider);
+export const compoundContract = new ethers.Contract(compoundAddress, compoundABI, provider);
 
 export async function getCurrentRates(): Promise<Rate[]> {
   const rates = await rateContract.getRates(compoundAddress, makerDAOAddress);

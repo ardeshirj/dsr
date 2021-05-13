@@ -47,7 +47,7 @@ export default function Graph({
     labels: rateTimestampLabels(compoundRates),
     datasets: [
       {
-        label: 'Compound Rate',
+        label: 'Compound DAI Rate',
         data:  compoundRates.map(rate => rate.apy),
         fill: false,
         // TODO: Replace rgb with COLORS.GREEN, etc...
@@ -56,7 +56,7 @@ export default function Graph({
         tension: 0.1
       },
       {
-        label: 'DSR Rate',
+        label: 'DSR DAI Rate',
         data: makeDaoRates.map(rate => rate.apy),
         fill: false,
         // TODO: Replace rgb with COLORS.GREEN, etc...
