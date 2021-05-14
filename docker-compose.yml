@@ -9,6 +9,8 @@ services:
 
   scripts:
     build: ./scripts
+    # Enable command below to load random historical rates
+    # command: ['node', 'load-random-historical.js']
     environment:
       - PG_USER=${PG_USER}
       - PG_HOST=${PG_HOST}
