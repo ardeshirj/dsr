@@ -29,7 +29,7 @@ const client = new Client({
   host: process.env.PG_HOST,
   database: process.env.PG_DATABASE,
   password: process.env.PG_PASSWORD,
-  port: Number(Process.env.PG_PORT),
+  port: Number(process.env.PG_PORT),
 });
 
 const main = async function() {
