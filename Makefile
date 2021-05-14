@@ -28,7 +28,7 @@ api_docker_down:
 
 ### PG
 pg_up: pg_down
-	cd pg && docker build -f Dockerfile . -t dsr_pg:latest
+	cd pg && docker build . -t dsr_pg:latest
 	docker run --name=dsr_pg\
 		-e POSTGRES_DB=rates \
 		-e POSTGRES_PASSWORD=dsr \
@@ -44,5 +44,15 @@ pg_connect:
 	psql -h localhost -p 5432 -d rates -U postgres
 ###
 
-load_rates:
+## Scripts
+scripts_docker_build:
+	cd scripts && docker build . -t dsr_scripts:latest
+
+scripts_docker_run: scripts_docker_build
+	docker run --name="dsr_scripts" dsr_scripts:latest
+
+scripts_docker_down:
+	docker rm dsr_scripts --force || true
+
+scripts_load_rates:
 	node scripts/load-historical.js
