@@ -3,7 +3,7 @@ const path = require('path');
 const ethers = require('ethers');
 const { Client } = require('pg');
 
-const LAST_128_BLOCKS = 125 ;
+const LAST_128_BLOCKS = 120 ;
 
 const Protocols = Object.freeze({
   "Compound": 1,
@@ -11,7 +11,6 @@ const Protocols = Object.freeze({
 });
 
 const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
-// const provider = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/1f130364fd12487f86318286d1fefc3e');
 
 // Compound
 const compoundAddress = "0xbc689667c13fb2a04f09272753760e38a95b998c"; // Ropsten address
@@ -25,13 +24,12 @@ const makerDaoABIPath = path.join(__dirname, 'abi', 'makerDAO.abi');
 const makerDaoABIJson = JSON.parse(fs.readFileSync(makerDaoABIPath, 'utf8'));
 const makerDaoContract = new ethers.Contract(makerDaoAddress, makerDaoABIJson, provider);
 
-// TODO use env var instead.
 const client = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'rates',
-  password: 'dsr',
-  port: 5432,
+  user: process.env.PG_USER,
+  host: process.env.PG_HOST,
+  database: process.env.PG_DATABASE,
+  password: process.env.PG_PASSWORD,
+  port: Number(Process.env.PG_PORT),
 });
 
 const main = async function() {
