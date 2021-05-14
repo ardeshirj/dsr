@@ -61,6 +61,10 @@ scripts_docker_down:
 scripts_load_rates: pg_up
 	source .env && \
 	node scripts/load-historical.js
+
+scripts_load_random_rates: pg_up
+	source .env && \
+	node scripts/load-random-historical.js
 ###
 
 ### Docker Compose
