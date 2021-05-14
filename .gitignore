@@ -1,1 +1,5 @@
 node_modules
+contracts/*.abi
+contracts/*.bin
+clinet/build
+.env
