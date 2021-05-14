@@ -35,7 +35,7 @@ app.get('/rates/historical', async (req, res) => {
       return {
         id: row.id,
         protocol: row.protocol,
-        apy: +row.rate,
+        apy: +row.apy,
         timestamp: +row.ts
       }
     })
