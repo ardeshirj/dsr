@@ -21,10 +21,7 @@ const rateAddress = "0x6178a413c4e4c5724515abf045c17070c87edbaa";
 const compoundAddress = "0xbc689667c13fb2a04f09272753760e38a95b998c";
 const makerDAOAddress = "0x9588a660241aeA569B3965e2f00631f2C5eDaE33";
 
-// TODO: Regenerate API key & expose it in env var
-// const provider = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/1f130364fd12487f86318286d1fefc3e');
 const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
-// const provider = new ethers.providers.JsonRpcBatchProvider('http://localhost:8545');
 
 const rateContract = new ethers.Contract(rateAddress, rateABI, provider);
 export const compoundContract = new ethers.Contract(compoundAddress, compoundABI, provider);
@@ -63,14 +60,12 @@ const calCompoundAPY = (rawRate: number) => {
   const ethMantissa = 1e18;
   const blocksPerDay = 4 * 60 * 24;
   const daysPerYear = 365;
-  const apy = (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
-  return +apy.toFixed(2);
+  return (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
 }
 
 const calMakerDaoAPY = (rawRate: number) => {
   const rate = rawRate / Math.pow(10, 27);
   const secondsInYear = 60 * 60 * 24 * 365;
-  const apy = Math.pow(rate, secondsInYear);
-  return +apy.toFixed(2);
+  return Math.pow(rate, secondsInYear);
 }
 

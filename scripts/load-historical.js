@@ -106,15 +106,13 @@ const calCompoundAPY = (rawRate) => {
   const ethMantissa = 1e18;
   const blocksPerDay = 4 * 60 * 24;
   const daysPerYear = 365;
-  const apy = (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
-  return apy.toFixed(2);
+  return (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
 }
 
 const calMakerDaoAPY = (rawRate) => {
   const rate = rawRate / Math.pow(10, 27);
   const secondsInYear = 60 * 60 * 24 * 365;
-  const apy = Math.pow(rate, secondsInYear);
-  return apy.toFixed(2);
+  return Math.pow(rate, secondsInYear);
 }
 
 try {
