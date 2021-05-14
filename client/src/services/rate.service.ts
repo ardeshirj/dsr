@@ -31,15 +31,17 @@ export const compoundContract = new ethers.Contract(compoundAddress, compoundABI
 
 export async function getCurrentRates(): Promise<Rate[]> {
   const rates = await rateContract.getRates(compoundAddress, makerDAOAddress);
+  const compoundAPY = calCompoundAPY(rates[Protocol.Compound].toString());
+  const makerDaoAPY = calMakerDaoAPY(rates[Protocol.MakerDAO].toString());
   return [
     {
       protocol: Protocol[0],
-      apy: rates[Protocol.Compound].toString(),
+      apy: compoundAPY,
       timestamp: await getCurrentBlockTimestamp()
     },
     {
       protocol: Protocol[1],
-      apy: rates[Protocol.MakerDAO].toString(),
+      apy: makerDaoAPY,
       timestamp: await getCurrentBlockTimestamp()
     }
   ];
@@ -56,3 +58,19 @@ const getCurrentBlockTimestamp = async () => {
   const currentBlock = await provider.getBlock(currentBlockNumber);
   return currentBlock.timestamp * 1000;
 }
+
+const calCompoundAPY = (rawRate: number) => {
+  const ethMantissa = 1e18;
+  const blocksPerDay = 4 * 60 * 24;
+  const daysPerYear = 365;
+  const apy = (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
+  return +apy.toFixed(2);
+}
+
+const calMakerDaoAPY = (rawRate: number) => {
+  const rate = rawRate / Math.pow(10, 27);
+  const secondsInYear = 60 * 60 * 24 * 365;
+  const apy = Math.pow(rate, secondsInYear);
+  return +apy.toFixed(2);
+}
+
