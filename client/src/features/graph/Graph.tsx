@@ -33,7 +33,7 @@ const graphOptions = {
       min: -5,
       max: 20,
       ticks: {
-        stepSize: 0.25
+        stepSize: 0.5
       }
     },
   },
@@ -69,8 +69,8 @@ export default function Graph({
 
   return (
     <div>
-      <h1>DAI Rates (Last 30 minutes)</h1>
-      <h3>Automatically will update on new interest rate</h3>
+      <h1>On-Chain Protocols DAI Rates</h1>
+      <h3>Automatically will update once new interest rate is received</h3>
       <Line type="line" data={linesData} options={graphOptions}/>
     </div>
   )
@@ -79,13 +79,10 @@ export default function Graph({
 const rateTimestampLabels = (rates: Rate[]) => {
   const labelSet = new Set();
 
-  rates
-    .slice()
-    .reverse()
-    .forEach(rate => {
-      const rateTime = new Date(rate.timestamp);
-      labelSet.add(rateTime.getHours() + ":" + rateTime.getMinutes());
-    });
+  rates.slice().forEach(rate => {
+    const date = new Date(rate.timestamp);
+    labelSet.add(date.getHours() + ":" + date.getMinutes());
+  });
 
-    return Array.from(labelSet);
+  return Array.from(labelSet);
 }

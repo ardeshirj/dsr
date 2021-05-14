@@ -2,7 +2,6 @@ import express from 'express';
 import Cors from 'cors';
 import { Client } from 'pg';
 
-// TODO use env var instead.
 const client = new Client({
   user: 'postgres',
   host: 'localhost',
@@ -27,18 +26,17 @@ app.get('/', (req, res) => res.send('Hello there!'));
 app.get('/rates/historical', async (req, res) => {
   try {
     const query = {
-      text: "SELECT * FROM rates WHERE protocol = $1 ORDER BY ts DESC LIMIT 128",
+      text: "SELECT * FROM rates WHERE protocol = $1 ORDER BY ts ASC LIMIT 128",
       values: [req.query.protocol]
     }
 
     const queryResult = await client.query(query);
     const rates = queryResult.rows.map(row => {
-      console.log(row);
       return {
         id: row.id,
         protocol: row.protocol,
         apy: +row.rate,
-        timestamp: row.ts
+        timestamp: +row.ts
       }
     })
     res.status(200).json(rates);

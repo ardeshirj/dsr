@@ -64,7 +64,7 @@ const main = async function() {
 
   console.log("Requesting previous blocks data")
   const previousBlocks = await Promise.all(previousBlocksPromises);
-  const blockTimestamps = previousBlocks.map(block => new Date(block.timestamp * 1000));
+  const blockTimestamps = previousBlocks.map(block => block.timestamp * 1000);
   console.log("Received block data");
 
   client.connect();
@@ -84,7 +84,7 @@ const getProtocolHistoricalRates = async (ratePromises) => {
 
 const insertRateToDB = async (protocol, rowRates, blockTimestamps) => {
   const insertStatements = rowRates.map((rawRate, index) => {
-    const queryStatement = 'INSERT INTO rates(protocol, rate, ts) VALUES ($1, $2, $3)';
+    const queryStatement = 'INSERT INTO rates(protocol, apy, ts) VALUES ($1, $2, $3)';
 
     let values;
     switch (protocol) {
@@ -92,7 +92,7 @@ const insertRateToDB = async (protocol, rowRates, blockTimestamps) => {
         values = ['Compound', calCompoundAPY(rawRate), blockTimestamps[index]];
         break;
       case Protocols.MakerDAO:
-        values = ['MakerDAO', calDsrAPY(rawRate), blockTimestamps[index]];
+        values = ['MakerDAO', calMakerDaoAPY(rawRate), blockTimestamps[index]];
         break;
       default:
         throw Error(`Unknown protocol: ${protocol}`);
@@ -108,13 +108,15 @@ const calCompoundAPY = (rawRate) => {
   const ethMantissa = 1e18;
   const blocksPerDay = 4 * 60 * 24;
   const daysPerYear = 365;
-  return (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
+  const apy = (((Math.pow((rawRate / ethMantissa * blocksPerDay) + 1, daysPerYear))) - 1) * 100;
+  return apy.toFixed(2);
 }
 
-const calDsrAPY = (rawRate) => {
+const calMakerDaoAPY = (rawRate) => {
   const rate = rawRate / Math.pow(10, 27);
   const secondsInYear = 60 * 60 * 24 * 365;
-  return Math.pow(rate, secondsInYear);
+  const apy = Math.pow(rate, secondsInYear);
+  return apy.toFixed(2);
 }
 
 try {
