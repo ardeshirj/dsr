@@ -4,6 +4,7 @@ import { Rate } from "../../services/rate.service";
 interface Props {
   compoundRates: Rate[];
   makeDaoRates: Rate[];
+  error: String
 }
 
 const COLORS = {
@@ -15,12 +16,13 @@ const COLORS = {
 
 export default function Graph({
   compoundRates,
-  makeDaoRates
+  makeDaoRates,
+  error
 }: Props) {
 
   const combinedAPY = compoundRates.concat(makeDaoRates).map(rate => rate.apy);
-  const max = Math.max(...combinedAPY) + 5;
-  const min = Math.min(...combinedAPY) - 5;
+  const max = Math.max(...combinedAPY);
+  const min = Math.min(...combinedAPY);
 
   const graphOptions = {
     elements: {
@@ -43,11 +45,11 @@ export default function Graph({
       },
       yAxes: {
         title: {
-          text: "Rate % APY",
+          text: "Rate (% APY)",
           display: true
         },
-        min: min,
-        max: max,
+        min: min - 5,
+        max: max + 5,
         ticks: {
           stepSize: max / 5
         }
@@ -81,18 +83,18 @@ export default function Graph({
     <div>
       <h1>On-Chain Protocols DAI Rates</h1>
       <h3>Automatically will update once new interest rate is received</h3>
-      <Line type="line" data={linesData} options={graphOptions}/>
+      {
+        error ?
+          <div>Error loading historical rates: {error} </div> :
+          <Line type="line" data={linesData} options={graphOptions}/>
+      }
     </div>
   )
 }
 
 const rateTimestampLabels = (rates: Rate[]) => {
-  const labelSet = new Set();
-
-  rates.slice().forEach(rate => {
+  return rates.map(rate => {
     const date = new Date(rate.timestamp);
-    labelSet.add(date.getHours() + ":" + date.getMinutes());
+    return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
   });
-
-  return Array.from(labelSet);
 }

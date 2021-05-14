@@ -18,6 +18,7 @@ function App() {
     isLoading,
     compoundRates,
     makerDaoRates,
+    error
   } = useSelector(
     (state: RootState) => state.graph
   );
@@ -38,7 +39,7 @@ function App() {
       <header className="App-header">
         { isLoading
             ? <div>Loading...</div>
-            : <Graph compoundRates={compoundRates} makeDaoRates={makerDaoRates} />
+            : <Graph compoundRates={compoundRates} makeDaoRates={makerDaoRates} error={error} />
         }
       </header>
     </div>

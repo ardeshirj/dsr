@@ -64,7 +64,6 @@ const isLoading = (state: GraphState) => {
 const appendNewRate = (rates: Rate[], newRate: Rate) => {
   const newRates = rates.slice();
   newRates.push(newRate);
-  newRates.sort((a, b) => a.timestamp - b.timestamp);
   return newRates;
 }
 
