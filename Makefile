@@ -1,19 +1,3 @@
-SHELL := /bin/zsh
-
-### Client
-client_start:
-	cd client && npm install && npm run start
-
-client_docker_build:
-	cd client && docker build . -t dsr_client:latest
-
-client_docker_up: client_docker_build
-	docker run -p 8080:80 --name=dsr-client -d client:latest
-
-client_docker_down:
-	docker rm dsr-client --force || true
-###
-
 ### API
 api_start:
 	source .env && \
@@ -50,7 +34,21 @@ pg_connect:
 	psql -h $${PG_HOST} -p 5432 -d $${PG_DATABASE} -U $${PG_USER}
 ###
 
-## Scripts
+### Client
+client_start:
+	cd client && npm install && npm run start
+
+client_docker_build:
+	cd client && docker build . -t dsr_client:latest
+
+client_docker_up: client_docker_build
+	docker run -p 8080:80 --name=dsr-client -d client:latest
+
+client_docker_down:
+	docker rm dsr-client --force || true
+###
+
+### Scripts
 scripts_docker_build:
 	cd scripts && docker build . -t dsr_scripts:latest
 
@@ -63,3 +61,17 @@ scripts_docker_down:
 scripts_load_rates: pg_up
 	source .env && \
 	node scripts/load-historical.js
+###
+
+### Docker Compose
+docker_compose_down:
+	docker compose down
+
+docker_compose_build: docker_compose_down
+	docker compose build
+
+docker_compose_up: docker_compose_build
+	docker compose --env-file .env.docker up
+
+run: docker_compose_up
+###
