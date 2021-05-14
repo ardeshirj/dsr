@@ -32,7 +32,7 @@ export const graphSlice = createSlice({
     // Compound
     fetchedCompoundCurrentRate: (state, action: PayloadAction<Rate>) => {
       state.isLoading = isLoading(state);
-      state.compoundRates = appendNewRate(state.compoundRates, action.payload)
+      state.compoundRates = appendNewRate(state.compoundRates, action.payload);
       state.error = null;
     },
     fetchedCompoundHistoricalRate: (state, action: PayloadAction<Rate[]>) => {

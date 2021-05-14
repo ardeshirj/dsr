@@ -6,43 +6,55 @@ interface Props {
   makeDaoRates: Rate[];
 }
 
-const graphOptions = {
-  elements: {
-    point: {
-      radius: 0
-    }
-  },
-  plugins: {
-    tooltip: {
-      mode: 'index',
-      intersect: false
-    },
-  },
-  scales: {
-    xAxes: {
-      title: {
-        text: "Time",
-        display: true
-      }
-    },
-    yAxes: {
-      title: {
-        text: "Rate % APY",
-        display: true
-      },
-      min: -5,
-      max: 20,
-      ticks: {
-        stepSize: 0.5
-      }
-    },
-  },
-};
+const COLORS = {
+  green: 'rgb(0,128,0)',
+  lighterGreen: 'rgb(0,128,0,0.5)',
+  yellow: 'rgb(230,230,0)',
+  lighterYellow: 'rgb(230,230,0.5)'
+}
 
 export default function Graph({
   compoundRates,
   makeDaoRates
 }: Props) {
+
+  const combinedAPY = compoundRates.concat(makeDaoRates).map(rate => rate.apy);
+  const max = Math.max(...combinedAPY) + 5;
+  const min = Math.min(...combinedAPY) - 5;
+
+  const graphOptions = {
+    elements: {
+      point: {
+        radius: 0
+      }
+    },
+    plugins: {
+      tooltip: {
+        mode: 'index',
+        intersect: false
+      },
+    },
+    scales: {
+      xAxes: {
+        title: {
+          text: "Time",
+          display: true
+        }
+      },
+      yAxes: {
+        title: {
+          text: "Rate % APY",
+          display: true
+        },
+        min: min,
+        max: max,
+        ticks: {
+          stepSize: max / 5
+        }
+      },
+    },
+  };
+
   const linesData = {
     labels: rateTimestampLabels(compoundRates),
     datasets: [
@@ -50,18 +62,16 @@ export default function Graph({
         label: 'Compound DAI Rate',
         data:  compoundRates.map(rate => rate.apy),
         fill: false,
-        // TODO: Replace rgb with COLORS.GREEN, etc...
-        borderColor: 'rgb(0,128,0)',
-        backgroundColor: 'rgb(0,128,0,0.5)',
+        borderColor: COLORS.green,
+        backgroundColor: COLORS.lighterGreen,
         tension: 0.1
       },
       {
         label: 'DSR DAI Rate',
         data: makeDaoRates.map(rate => rate.apy),
         fill: false,
-        // TODO: Replace rgb with COLORS.GREEN, etc...
-        borderColor: 'rgb(230,230,0)',
-        backgroundColor: 'rgb(230,230,0.5)',
+        borderColor: COLORS.yellow,
+        backgroundColor: COLORS.lighterYellow,
         tension: 0.1
       },
     ],
