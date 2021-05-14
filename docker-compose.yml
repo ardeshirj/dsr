@@ -1,0 +1,41 @@
+services:
+  pg:
+    image: dsr_pg:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=${PG_DATABASE}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+
+  scripts:
+    image: dsr_scripts
+    environment:
+      - USER=${PG_USER}
+      - HOST=${PG_HOST}
+      - DATABASE=${PG_DATABASE}
+      - PASSWORD=${PG_PASSWORD}
+    depends_on:
+      - "pg"
+    links:
+      - "pg:pg"
+
+  api:
+    image: api:latest
+    environment:
+      - USER=${PG_USER}
+      - HOST=${PG_HOST}
+      - DATABASE=${PG_DATABASE}
+      - PASSWORD=${PG_PASSWORD}
+    ports:
+      - 8000:8000
+    depends_on:
+      - "scripts"
+    links:
+      - "pg:pg"
+
+  client:
+    image: client:latest
+    ports:
+      - "8080:80"
+    depends_on:
+      - "api"
