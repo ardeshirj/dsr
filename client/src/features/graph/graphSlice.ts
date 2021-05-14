@@ -32,7 +32,7 @@ export const graphSlice = createSlice({
     // Compound
     fetchedCompoundCurrentRate: (state, action: PayloadAction<Rate>) => {
       state.isLoading = isLoading(state);
-      state.compoundRates = state.compoundRates.concat(action.payload);
+      state.compoundRates = appendNewRate(state.compoundRates, action.payload)
       state.error = null;
     },
     fetchedCompoundHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
@@ -43,7 +43,7 @@ export const graphSlice = createSlice({
     // MakerDao
     fetchedMakerDaoCurrentRate: (state, action: PayloadAction<Rate>) => {
       state.isLoading = isLoading(state);
-      state.makerDaoRates = state.makerDaoRates.concat(action.payload);
+      state.makerDaoRates = appendNewRate(state.makerDaoRates, action.payload)
       state.error = null;
     },
     fetchedMakerDaoHistoricalRate: (state, action: PayloadAction<Rate[]>) => {
@@ -59,6 +59,13 @@ const isLoading = (state: GraphState) => {
     state.compoundRates.length === 0 &&
     state.makerDaoRates &&
     state.makerDaoRates.length === 0;
+}
+
+const appendNewRate = (rates: Rate[], newRate: Rate) => {
+  const newRates = rates.slice();
+  newRates.push(newRate);
+  newRates.sort((a, b) => a.timestamp - b.timestamp);
+  return newRates;
 }
 
 export const {
