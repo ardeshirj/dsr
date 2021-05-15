@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
-import rateABI from './rate.json';
 import compoundABI from './compound.json';
-// import makerDaoABI from './makerDAO.json';
+import makerDaoABI from './makerDAO.json';
 
 export interface Rate {
   id?: number,
@@ -16,36 +15,33 @@ export enum Protocol {
   MakerDAO,
 };
 
-// Ropsten address
-const rateAddress = "0x6178a413c4e4c5724515abf045c17070c87edbaa";
-const compoundAddress = "0xbc689667c13fb2a04f09272753760e38a95b998c";
-const makerDAOAddress = "0x9588a660241aeA569B3965e2f00631f2C5eDaE33";
+const provider = new ethers.providers.JsonRpcProvider(process.env.REACT_APP_RPC_ENDPOINT);
+const compoundAddress = "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643";
+const makerDaoAddress = "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7";
 
-const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
-
-const rateContract = new ethers.Contract(rateAddress, rateABI, provider);
 export const compoundContract = new ethers.Contract(compoundAddress, compoundABI, provider);
+export const makerDaoContract = new ethers.Contract(makerDaoAddress, makerDaoABI, provider);
 
 export async function getCurrentRates(): Promise<Rate[]> {
-  const rates = await rateContract.getRates(compoundAddress, makerDAOAddress);
-  const compoundAPY = calCompoundAPY(rates[Protocol.Compound].toString());
-  const makerDaoAPY = calMakerDaoAPY(rates[Protocol.MakerDAO].toString());
+  const compoundRate = await compoundContract.supplyRatePerBlock();
+  const makerDAORate = await makerDaoContract.dsr();
+
   return [
     {
       protocol: Protocol[0],
-      apy: compoundAPY,
+      apy: calCompoundAPY(+compoundRate.toString()),
       timestamp: await getCurrentBlockTimestamp()
     },
     {
       protocol: Protocol[1],
-      apy: makerDaoAPY,
+      apy: calMakerDaoAPY(+makerDAORate.toString()),
       timestamp: await getCurrentBlockTimestamp()
     }
   ];
 }
 
 export async function getHistoricalRate(protocol: Protocol): Promise<Rate[]> {
-  const url = `http://localhost:8000/rates/historical?protocol=${Protocol[protocol]}`;
+  const url = `${process.env.REACT_API_ENDPOINT}/rates/historical?protocol=${Protocol[protocol]}`;
   const { data } = await axios.get<Rate[]>(url);
   return data;
 }

@@ -13,13 +13,13 @@ const Protocols = Object.freeze({
 const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
 
 // Compound
-const compoundAddress = "0xbc689667c13fb2a04f09272753760e38a95b998c"; // Ropsten address
+const compoundAddress = "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643";
 const compoundABIPath = path.join(__dirname, 'abi', 'compound.abi');
 const compoundABIJson = JSON.parse(fs.readFileSync(compoundABIPath, 'utf8'));
 const compoundContract = new ethers.Contract(compoundAddress, compoundABIJson, provider);
 
 // Maker DAO - DSR
-const makerDaoAddress = "0x9588a660241aeA569B3965e2f00631f2C5eDaE33"; // Ropsten address
+const makerDaoAddress = "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7";
 const makerDaoABIPath = path.join(__dirname, 'abi', 'makerDAO.abi');
 const makerDaoABIJson = JSON.parse(fs.readFileSync(makerDaoABIPath, 'utf8'));
 const makerDaoContract = new ethers.Contract(makerDaoAddress, makerDaoABIJson, provider);
