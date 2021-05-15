@@ -1,19 +1,3 @@
-### API
-api_start:
-	source .env && \
-	cd api && \
-	npm install && npm run start
-
-api_docker_build:
-	cd api && docker build . -t api:latest
-
-api_docker_up: api_docker_build
-	docker run -p 8000:8000 --name=dsr-api -d dsr_api:latest
-
-api_docker_down:
-	docker rm dsr-api --force || true
-###
-
 ### PG
 pg_up: pg_down
 	cd pg && docker build . -t dsr_pg:latest
@@ -34,6 +18,25 @@ pg_connect:
 	psql -h $${PG_HOST} -p 5432 -d $${PG_DATABASE} -U $${PG_USER}
 ###
 
+### API
+api_start:
+	source .env && \
+	cd api && \
+	npm install && \
+	npm run start
+
+api_docker_build:
+	source .env.docker && \
+	cd api && \
+	docker build . -t api_client:latest
+
+api_docker_up: api_docker_build
+	docker run -p 8000:8000 --name=dsr-api -d dsr_api:latest
+
+api_docker_down:
+	docker rm dsr-api --force || true
+###
+
 ### Client
 client_start:
 	source .env && \
@@ -42,7 +45,9 @@ client_start:
 	npm run start
 
 client_docker_build:
-	cd client && docker build . -t dsr_client:latest
+	source .env.docker && \
+	cd client && \
+	docker build . -t dsr_client:latest
 
 client_docker_up: client_docker_build
 	docker run -p 8080:80 --name=dsr-client -d client:latest
@@ -53,7 +58,9 @@ client_docker_down:
 
 ### Scripts
 scripts_docker_build:
-	cd scripts && docker build . -t dsr_scripts:latest
+	source .env.docker && \
+	cd scripts && \
+	docker build . -t dsr_scripts:latest
 
 scripts_docker_run: scripts_docker_build
 	docker run --name="dsr_scripts" dsr_scripts:latest
@@ -75,9 +82,13 @@ docker_compose_down:
 	docker compose down
 
 docker_compose_build: docker_compose_down
-	docker compose build
+	source .env.docker && \
+	docker compose build \
+		--build-arg RPC_ENDPOINT=$${REACT_APP_RPC_ENDPOINT} \
+		--build-arg API_ENDPOINT=$${REACT_APP_API_ENDPOINT}
 
 docker_compose_up: docker_compose_build
+	source .env.docker && \
 	docker compose --env-file .env.docker up
 
 run: docker_compose_up

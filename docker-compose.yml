@@ -38,8 +38,6 @@ services:
 
   client:
     build: ./client
-    environment:
-      - REACT_APP_RPC_ENDPOINT=${REACT_APP_RPC_ENDPOINT}
     ports:
       - "8080:80"
     depends_on:
