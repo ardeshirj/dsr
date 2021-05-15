@@ -41,7 +41,7 @@ export async function getCurrentRates(): Promise<Rate[]> {
 }
 
 export async function getHistoricalRate(protocol: Protocol): Promise<Rate[]> {
-  const url = `${process.env.REACT_API_ENDPOINT}/rates/historical?protocol=${Protocol[protocol]}`;
+  const url = `${process.env.REACT_APP_API_ENDPOINT}/rates/historical?protocol=${Protocol[protocol]}`;
   const { data } = await axios.get<Rate[]>(url);
   return data;
 }

@@ -51,7 +51,7 @@ export default function Graph({
         min: min - 1,
         max: max + 1,
         ticks: {
-          stepSize: max / 2
+          stepSize: max / 3
         }
       },
     },
