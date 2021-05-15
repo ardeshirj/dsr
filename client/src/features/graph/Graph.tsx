@@ -48,10 +48,10 @@ export default function Graph({
           text: "Rate (% APY)",
           display: true
         },
-        min: min - 5,
-        max: max + 5,
+        min: min - 1,
+        max: max + 1,
         ticks: {
-          stepSize: max / 5
+          stepSize: max / 2
         }
       },
     },
@@ -61,7 +61,7 @@ export default function Graph({
     labels: rateTimestampLabels(compoundRates),
     datasets: [
       {
-        label: 'Compound DAI Rate',
+        label: 'Compound',
         data:  compoundRates.map(rate => rate.apy),
         fill: false,
         borderColor: COLORS.green,
@@ -69,7 +69,7 @@ export default function Graph({
         tension: 0.1
       },
       {
-        label: 'DSR DAI Rate',
+        label: 'MakerDAO',
         data: makeDaoRates.map(rate => rate.apy),
         fill: false,
         borderColor: COLORS.yellow,
