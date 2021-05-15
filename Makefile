@@ -36,7 +36,10 @@ pg_connect:
 
 ### Client
 client_start:
-	cd client && npm install && npm run start
+	source .env && \
+	cd client && \
+	npm install && \
+	npm run start
 
 client_docker_build:
 	cd client && docker build . -t dsr_client:latest

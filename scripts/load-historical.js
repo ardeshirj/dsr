@@ -3,24 +3,24 @@ const path = require('path');
 const ethers = require('ethers');
 const { Client } = require('pg');
 
-const LAST_128_BLOCKS = 120 ;
+const LAST_128_BLOCKS = 120;
 
 const Protocols = Object.freeze({
   "Compound": 1,
   "MakerDAO": 2
 });
 
-const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
+const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_ENDPOINT);
 
 // Compound
 const compoundAddress = "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643";
-const compoundABIPath = path.join(__dirname, 'abi', 'compound.abi');
+const compoundABIPath = path.join(__dirname, 'abi', 'compound.json');
 const compoundABIJson = JSON.parse(fs.readFileSync(compoundABIPath, 'utf8'));
 const compoundContract = new ethers.Contract(compoundAddress, compoundABIJson, provider);
 
-// Maker DAO - DSR
+// Maker DAO
 const makerDaoAddress = "0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7";
-const makerDaoABIPath = path.join(__dirname, 'abi', 'makerDAO.abi');
+const makerDaoABIPath = path.join(__dirname, 'abi', 'makerDAO.json');
 const makerDaoABIJson = JSON.parse(fs.readFileSync(makerDaoABIPath, 'utf8'));
 const makerDaoContract = new ethers.Contract(makerDaoAddress, makerDaoABIJson, provider);
 

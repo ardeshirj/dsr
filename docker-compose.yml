@@ -16,6 +16,7 @@ services:
       - PG_HOST=${PG_HOST}
       - PG_DATABASE=${PG_DATABASE}
       - PG_PASSWORD=${PG_PASSWORD}
+      - RPC_ENDPOINT=${RPC_ENDPOINT}
     depends_on:
       - "pg"
     links:
@@ -37,6 +38,8 @@ services:
 
   client:
     build: ./client
+    environment:
+      - REACT_APP_RPC_ENDPOINT=${REACT_APP_RPC_ENDPOINT}
     ports:
       - "8080:80"
     depends_on:

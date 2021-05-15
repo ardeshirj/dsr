@@ -8,7 +8,7 @@ const Protocols = Object.freeze({
   "MakerDAO": 2
 });
 
-const provider = new ethers.providers.JsonRpcProvider('https://eth-testnet.coincircle.com');
+const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_ENDPOINT);
 
 const client = new Client({
   user: process.env.PG_USER,
