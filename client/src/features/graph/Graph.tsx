@@ -25,6 +25,9 @@ export default function Graph({
   const min = Math.min(...combinedAPY);
 
   const graphOptions = {
+    animation: {
+      duration: 0
+    },
     elements: {
       point: {
         radius: 0
@@ -81,8 +84,6 @@ export default function Graph({
 
   return (
     <div>
-      <h1>On-Chain Protocols DAI Rates</h1>
-      <h3>Automatically will update once new interest rate is received</h3>
       {
         error ?
           <div>Error loading historical rates: {error} </div> :
