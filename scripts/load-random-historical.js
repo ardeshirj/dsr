@@ -65,7 +65,7 @@ const insertRateToDB = async (protocol, blockTimestamps) => {
 }
 
 const calCompoundAPY = (rawRate) => {
-  return Math.random() * (12 - 10) + 10;
+  return Math.random() * (4 - 3) + 3;
 }
 
 const calMakerDaoAPY = (rawRate) => {
