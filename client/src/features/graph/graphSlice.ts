@@ -22,7 +22,6 @@ export const graphSlice = createSlice({
   reducers: {
     fetchRate: (state) => {
       state.isLoading = true;
-      state.compoundRates = [];
       state.error = null;
     },
     fetchRateFailed: (state, action: PayloadAction<string>) => {
@@ -62,9 +61,14 @@ const isLoading = (state: GraphState) => {
 }
 
 const appendNewRate = (rates: Rate[], newRate: Rate) => {
-  const newRates = rates.slice();
-  newRates.push(newRate);
-  return newRates;
+  const lastRate = rates[rates.length - 1];
+  if (lastRate.timestamp !== newRate.timestamp) {
+    const newRates = rates.slice();
+    newRates.push(newRate);
+    return newRates;
+  } else {
+    return rates;
+  }
 }
 
 export const {
