@@ -1,98 +1,33 @@
-# CoinCircle Coding Test
+# Overview
+A full stack application to visualize DAI historical & current historical interest rates using Compound & MakerDAO (DAI Saving Rate) on-chain protocols. There are 4 different services that power up this application: `api, client, scripts and pg`. Here is a graph to visualize how these services are wired up:
 
-This is a 2-part test:
+![Overview](./Overview.svg)
 
-The first part involves creating a very simple full-stack application that
-allows you to compare historical DAI interest rates across the top 3 on-chain
-protocols that allow you to earn interest on DAI:
+We can build and run these services using `docker compose`. The very first service that boots up is `pg`. This service initialize Postgres database with given database name, password and schema (Checkout `Dockerfile` & `psql_dump.sql` in pg directory). Once `pg` is initialized, `scripts` service will boot up to pull on-chain historical data and store it in Postgres using `pg` service. Next, the `api` will boot up which will expose `rates/historical?protocol=` to provide historical data that was stored in Postgres. The `client` will use this endpoint to pull historical interest rate as well as using Web3, on-chain contracts and Infura.io to pull current interest rate.
 
-1. Compound Finance
-2. The DAI Savings Rate
-3. (choose your own for the 3rd!)
+# Build & Run
+We can build & run this application using docker compose in two steps:
+- Create `.env.docker` file
+- `make run` command.
 
-Part 2 is a simple solidity contract that queries the current interest rate
-from all 3 of those procotols
+## .env.docker
+Docker compose will use `.env.docker` file to provide build args & environment variables for docker to build and run those services. We can use `.env.sample` to find out all those necessary environment variables.
 
-You will be judged on the following:
+## make run
+After getting `.env.docker` file ready, we can simply use `make run` command to build and run the services. The log for each service will start showing up when the service start running. Once `scripts` service finish loading historical data and exit with code 0, we can then open http://localhost:8080/ to checkout interest rate changes.
 
-1. Code Quality / Readability / Maintainability / Architecture
-2. Design UX/UI
-3. Performance (speed)
+# Notes
 
-**The full-stack application must be written according to the following specifications:**
+## Rate Contract
+As part of the requirement, we have developed smart contract with single function `getRates()`, and we deployed it to Ropsten test net, however the rate changes in test network was really steady and not changing very often, so we end up using on-chain contracts directly in Mainnet instead. The information about the contract such as ABI and address is documented in `contracts/README.md`.
 
-1. The backend must be written in either node/express or golang.
-2. The front-end must be written in React
-3. If you use a database (which you probably will need to) it should use Postgres.
-4. If you use a cache, use Redis.
-5. The application must fully load quickly (less than 500ms).
-6. The UI must render a historical graph that live updates as the interest rates change.
-7. The application must show at least 128 blocks. For the historical data, your web application may query contracts besides your own as well as any other on-chain data.
-8. The application must be containerized in a docker container.
-9. The application should include a Makefile, and when we test it in a fresh enviornment, we should be able to run the application using a single command `make run` and the application should run at `http://localhost:3001`
-10. As you are building, you should use github to push commits. The final app should be published on github, which is where we will find it. Name it something original that you think sounds cool.  Please be sure to NOT call it anything with the words CoinCircle or Coding Test or CoinCircle Coding Test or anything similar.  Once you have published it and tested that it can be downloaded and run from a new enviornment with `make run` please email us and let us know it's ready for us to try out.
+## Random Historical Data
+By default, we load last 30 minutes historical rates using `load-historical.js` script. The interest rate within that window may have changed, but not very often, so it is likely that initial graph lines would be straight lines. In case you want to experiment with random historical rates, you can use `load-random-historical` script instead. This can be done by overriding command attribute for scripts service in docker-compose file:
+```yml
+# NOTE: You would need to rerun `make run` once you make this change.
+scripts:
+  build: ./scripts
+  # Enable command below to load random historical rates
+  command: ['node', 'load-random-historical.js']
+```
 
-**The solidity contract should be written according to the following specifications:**
-
-1. Should be deployed on the Ropsten Network.
-2. Implements a single function `getRates()` that returns the current interest
-rate for the 3 protocols
-
-More helpful info regarding the smart contract portion is mentioned below.
-
-## Getting Started
-
-1. Clone this repo - do NOT fork it.
-2. Create a new, public github repo using this repo as a starting point. If you
-prefer, you can upload a private repo so long as you also give access to the
-following Github accounts: `erickmiller`, `coopermaruyama`.
-3. Complete this test in your new repo.
-4. At any time, if you have questions, email one of us.
-
-<br>
-
-# Writing Your Smart Contract
-
-The easiest way to do this part is using [Remix](https://remix.ethereum.org/).
-
-You will also need [MetaMask](https://metamask.io/).
-
-Also, you will need some test Ether to deploy your contract. Here are 2 faucets
-you can use that will give you free Ropsten ETH:
-
- * [Ropsten Faucet](https://faucet.ropsten.be/)
- * [MetaMask Ropsten Faucet](https://faucet.metamask.io/)
-
-You can find the contract addresses for compound's Ropsten contracts here:
-https://compound.finance/docs#networks
-
-Here are the Ropsten contract addresses and ABI's for DAI:
-https://changelog.makerdao.com/releases/ropsten/1.0.4/index.html
-
-Here is a guide on getting the DAI Savings Rate:
-https://github.com/makerdao/developerguides/blob/master/dai/dsr-integration-guide/dsr-integration-guide.md#how-to-calculate-rates-and-savings
-
-# Helpful Info
-
-## Ethereum JSON RPC Provider
-
-Feel free to use our node as a Ethereum JSON RPC Provider:
-
-Ropsten: https://eth-testnet.coincircle.com
-Mainnet: https://eth.coincircle.com
-
-Also, note that you only need to get the lending (supply) rates. You don't need to worry about implementing the borrow rate.
-
-## Regarding Historical Data
-
-When querying an Ethereum node via RPC, you can pass in a block number in the
-past so long as it is within 128 blocks of the current block. this is why the
-historical data requirement is set to 128 blocks, which is a little more than
-30 minutes worth of data.
-
-Therefore, when we run your app, we expect to see at least 30 minutes of historical data,
-with new data being appended as it comes in.
-
-More info on querying past blocks here (see overrides.blockTag):
-
-https://docs.ethers.io/v5/api/contract/contract/#Contract-functionsCall
