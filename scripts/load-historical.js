@@ -3,6 +3,9 @@ const path = require('path');
 const ethers = require('ethers');
 const { Client } = require('pg');
 
+// Setting this to 128 can cause eth_call errors.
+// Using smaller number such 120 can help us avoid that.
+// 120 should be close 30 minutes worth of historical data.
 const LAST_128_BLOCKS = 120;
 
 const Protocols = Object.freeze({
