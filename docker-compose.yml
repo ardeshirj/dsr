@@ -1,0 +1,44 @@
+services:
+  pg:
+    build: ./pg
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=${PG_DATABASE}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+
+  scripts:
+    build: ./scripts
+    # Enable command below to load random historical rates
+    # command: ['node', 'load-random-historical.js']
+    environment:
+      - PG_USER=${PG_USER}
+      - PG_HOST=${PG_HOST}
+      - PG_DATABASE=${PG_DATABASE}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - RPC_ENDPOINT=${RPC_ENDPOINT}
+    depends_on:
+      - "pg"
+    links:
+      - "pg:pg"
+
+  api:
+    build: ./api
+    environment:
+      - PG_USER=${PG_USER}
+      - PG_HOST=${PG_HOST}
+      - PG_DATABASE=${PG_DATABASE}
+      - PG_PASSWORD=${PG_PASSWORD}
+    ports:
+      - 8000:8000
+    depends_on:
+      - "scripts"
+    links:
+      - "pg:pg"
+
+  client:
+    build: ./client
+    ports:
+      - "8080:80"
+    depends_on:
+      - "api"
